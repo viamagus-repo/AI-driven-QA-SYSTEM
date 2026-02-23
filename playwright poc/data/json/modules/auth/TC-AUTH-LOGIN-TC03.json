@@ -1,0 +1,31 @@
+{
+  "id": "TC-AUTH-LOGIN-TC03",
+  "module": "auth",
+  "flowKey": "loginInvalidPassword",
+  "description": "Incorrect Password",
+  "type": "negative",
+  "priority": "high",
+  "suite": "smoke,regression,e2e",
+  "tags": [
+    "smoke",
+    "regression",
+    "e2e"
+  ],
+  "steps": "1. Enter a valid email.2. Enter an incorrect password.3. Click \"Login.\"",
+  "expectedResult": "Error message: \"Invalid email or password.\"",
+  "testData": {
+    "input": {
+      "email": "viamagus@ognomy.com",
+      "password": "invalidpass"
+    },
+    "expectedData": {
+      "success": false,
+      "errors": [
+        {
+          "field": "other",
+          "message": "Wrong email or password"
+        }
+      ]
+    }
+  }
+}

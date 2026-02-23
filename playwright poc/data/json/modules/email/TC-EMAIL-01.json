@@ -1,0 +1,27 @@
+{
+  "id": "TC-EMAIL-01",
+  "module": "email",
+  "flowKey": "sendEmail",
+  "description": "Send email",
+  "type": "positive",
+  "priority": "high",
+  "suite": "smoke,regression,e2e",
+  "tags": [
+    "smoke",
+    "regression",
+    "e2e"
+  ],
+  "steps": "Create and send a new message from inbox.",
+  "expectedResult": "Alert should be visible after send",
+  "testData": {
+    "input": {
+      "recipientSearch": "tim",
+      "ccSearch": "tim",
+      "subject": "Test Reports",
+      "body": "Please collect the test reports from the front desk"
+    },
+    "expectedData": {
+      "success": true
+    }
+  }
+}

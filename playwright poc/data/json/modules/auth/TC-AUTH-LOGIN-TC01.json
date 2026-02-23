@@ -1,0 +1,26 @@
+{
+  "id": "TC-AUTH-LOGIN-TC01",
+  "module": "auth",
+  "flowKey": "loginValid",
+  "description": "Valid Login with Standard User",
+  "type": "positive",
+  "priority": "critical",
+  "suite": "smoke,regression,e2e",
+  "tags": [
+    "smoke",
+    "regression",
+    "e2e"
+  ],
+  "steps": "1. Navigate to login page. 2. Enter valid email address. 3. Enter valid password. 4. Click Login button.",
+  "expectedResult": "User successfully logs in and is redirected to dashboard",
+  "testData": {
+    "input": {
+      "email": "viamagus@ognomy.com",
+      "password": "!NotReal123"
+    },
+    "expectedData": {
+      "success": true,
+      "redirectUrl": "/console/home"
+    }
+  }
+}

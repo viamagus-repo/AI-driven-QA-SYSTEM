@@ -1,0 +1,30 @@
+{
+  "id": "TC-AUTH-LOGIN-TC02",
+  "module": "auth",
+  "flowKey": "loginInvalidUsername",
+  "description": "Invalid Email Format",
+  "type": "negative",
+  "priority": "high",
+  "suite": "regression,e2e",
+  "tags": [
+    "regression",
+    "e2e"
+  ],
+  "steps": "1. Enter an incorrectly formatted email.2. Enter a valid password.3. Click \"Login.\"",
+  "expectedResult": "Error message: \"Please enter a valid email address.\"",
+  "testData": {
+    "input": {
+      "email": "viamagus@gmail.com",
+      "password": "!NotReal123"
+    },
+    "expectedData": {
+      "success": false,
+      "errors": [
+        {
+          "field": "email",
+          "message": "Email is not valid."
+        }
+      ]
+    }
+  }
+}

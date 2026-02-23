@@ -1,0 +1,30 @@
+{
+  "module": "email",
+  "lastUpdated": "2026-02-18",
+  "description": "email module test suite configuration",
+  "suites": {
+    "smoke": [
+      "TC-EMAIL-01"
+    ],
+    "regression": [
+      "TC-EMAIL-01"
+    ],
+    "e2e": [
+      "TC-EMAIL-01"
+    ]
+  },
+  "testDataFiles": {
+    "TC-EMAIL-01": "TC-EMAIL-01.json"
+  },
+  "tags": {
+    "smoke": [
+      "TC-EMAIL-01"
+    ],
+    "regression": [
+      "TC-EMAIL-01"
+    ],
+    "e2e": [
+      "TC-EMAIL-01"
+    ]
+  }
+}

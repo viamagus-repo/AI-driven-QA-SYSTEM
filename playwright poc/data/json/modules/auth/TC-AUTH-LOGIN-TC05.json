@@ -1,0 +1,24 @@
+{
+  "id": "TC-AUTH-LOGIN-TC05",
+  "module": "auth",
+  "flowKey": "loginLogout",
+  "description": "Logout",
+  "type": "positive",
+  "priority": "medium",
+  "suite": "regression,e2e",
+  "tags": [
+    "regression",
+    "e2e"
+  ],
+  "steps": "1. Click \"Forgot Password?\" link.",
+  "expectedResult": "User is redirected to the password recovery page.",
+  "testData": {
+    "input": {
+      "email": "viamagus@ognomy.com",
+      "password": "!NotReal123"
+    },
+    "expectedData": {
+      "success": true
+    }
+  }
+}

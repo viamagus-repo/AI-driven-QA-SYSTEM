@@ -1,0 +1,38 @@
+{
+  "module": "user",
+  "lastUpdated": "2026-02-18",
+  "description": "user module test suite configuration",
+  "suites": {
+    "smoke": [
+      "TC-USER-01"
+    ],
+    "regression": [
+      "TC-USER-01",
+      "TC-USER-02"
+    ],
+    "e2e": [
+      "TC-USER-01",
+      "TC-USER-02",
+      "TC-USER-03"
+    ]
+  },
+  "testDataFiles": {
+    "TC-USER-01": "TC-USER-01.json",
+    "TC-USER-02": "TC-USER-02.json",
+    "TC-USER-03": "TC-USER-03.json"
+  },
+  "tags": {
+    "smoke": [
+      "TC-USER-01"
+    ],
+    "regression": [
+      "TC-USER-01",
+      "TC-USER-02"
+    ],
+    "e2e": [
+      "TC-USER-01",
+      "TC-USER-02",
+      "TC-USER-03"
+    ]
+  }
+}

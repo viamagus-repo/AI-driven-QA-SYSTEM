@@ -1,0 +1,24 @@
+{
+  "id": "TC-USER-03",
+  "module": "user",
+  "flowKey": "editUserPassword",
+  "description": "Edit user password",
+  "type": "positive",
+  "priority": "medium",
+  "suite": "e2e",
+  "tags": [
+    "e2e"
+  ],
+  "steps": "Change password for an existing user.",
+  "expectedResult": "Password changed confirmation should be visible",
+  "testData": {
+    "input": {
+      "searchName": "John Nolan",
+      "newPassword": "Suhas@123"
+    },
+    "expectedData": {
+      "success": true,
+      "message": "Password has been"
+    }
+  }
+}

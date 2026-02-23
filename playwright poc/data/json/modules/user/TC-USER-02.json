@@ -1,0 +1,24 @@
+{
+  "id": "TC-USER-02",
+  "module": "user",
+  "flowKey": "deleteUser",
+  "description": "Delete user",
+  "type": "positive",
+  "priority": "high",
+  "suite": "regression,e2e",
+  "tags": [
+    "regression",
+    "e2e"
+  ],
+  "steps": "Delete an existing user from Users screen.",
+  "expectedResult": "Success toast should be visible after delete",
+  "testData": {
+    "input": {
+      "searchName": "Tannay Chandhok"
+    },
+    "expectedData": {
+      "success": true,
+      "message": "User has been successfully"
+    }
+  }
+}

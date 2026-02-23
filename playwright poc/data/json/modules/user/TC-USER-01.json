@@ -1,0 +1,32 @@
+{
+  "id": "TC-USER-01",
+  "module": "user",
+  "flowKey": "createUser",
+  "description": "Create user",
+  "type": "positive",
+  "priority": "high",
+  "suite": "smoke,regression,e2e",
+  "tags": [
+    "smoke",
+    "regression",
+    "e2e"
+  ],
+  "steps": "Create a new user record from Users screen.",
+  "expectedResult": "User should be created and visible in list",
+  "testData": {
+    "input": {
+      "firstName": "Alice",
+      "lastName": "Doe",
+      "email": "alice@example.cm",
+      "phone": "1234567890",
+      "reason": "Checkup",
+      "state": "AZ",
+      "dobYear": "1990",
+      "dobMonth": "January",
+      "dobDay": "15"
+    },
+    "expectedData": {
+      "success": true
+    }
+  }
+}

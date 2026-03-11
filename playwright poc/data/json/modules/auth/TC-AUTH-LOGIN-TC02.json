@@ -1,7 +1,7 @@
 {
   "id": "TC-AUTH-LOGIN-TC02",
   "module": "auth",
-  "flowKey": "loginInvalidUsername",
+  "flowCode": "loginInvalidUsername",
   "description": "Invalid Email Format",
   "type": "negative",
   "priority": "high",

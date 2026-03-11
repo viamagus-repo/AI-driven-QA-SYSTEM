@@ -1,7 +1,7 @@
 {
   "id": "TC-AUTH-LOGIN-TC05",
   "module": "auth",
-  "flowKey": "loginLogout",
+  "flowCode": "loginLogout",
   "description": "Logout",
   "type": "positive",
   "priority": "medium",

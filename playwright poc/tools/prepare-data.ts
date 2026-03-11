@@ -2,6 +2,7 @@
 
 import * as path from "path";
 import { convertExcelToJson } from "./excel-to-json-test-case";
+import { generateFlowRegistry } from "./generate-flow-registry";
 import { logError, logInfo } from "../core/utils/logger";
 
 const moduleName = (process.argv[2] || "all").toLowerCase();
@@ -14,6 +15,7 @@ try {
   logInfo("DATA-PREP", `Started for module mode '${moduleName}'`);
   logInfo("DATA-PREP", `Excel source: ${baseExcelDir}`);
   logInfo("DATA-PREP", `JSON output: ${outputDir}`);
+  generateFlowRegistry();
 
   if (moduleName === "auth") {
     logInfo("DATA-PREP", `Converting auth file: ${authFile}`);

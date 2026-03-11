@@ -1,13 +1,10 @@
-export type AuthFlowKey =
-  | "loginValid"
-  | "loginInvalidUsername"
-  | "loginInvalidPassword"
-  | "loginLogout";
+export type AuthFlowKey = string;
 
 export interface BaseTestCase {
   id: string;
   module: string;
-  flowKey: string;
+  flowCode: string;
+  flowKey?: string;
   description: string;
   type: string;
   priority: string;
@@ -22,7 +19,7 @@ export interface BaseTestCase {
 }
 
 export interface AuthTestCase extends BaseTestCase {
-  flowKey: AuthFlowKey;
+  flowCode: AuthFlowKey;
 }
 
 export interface ModuleConfig {

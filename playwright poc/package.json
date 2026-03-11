@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "flow:registry": "node ./node_modules/ts-node/dist/bin.js tools/generate-flow-registry.ts",
+    "generate:module": "node ./node_modules/ts-node/dist/bin.js tools/generate-module.ts",
+    "reset:framework": "node ./node_modules/ts-node/dist/bin.js tools/reset-framework.ts",
+    "validate:framework": "node ./node_modules/ts-node/dist/bin.js tools/validate-framework.ts",
     "testdata:prepare": "npx ts-node tools/prepare-data.ts all",
     "testdata:prepare:auth": "npx ts-node tools/prepare-data.ts auth",
     "test:controlled": "npx ts-node tools/test-control.ts",

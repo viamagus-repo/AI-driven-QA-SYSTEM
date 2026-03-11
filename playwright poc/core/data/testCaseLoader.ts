@@ -34,8 +34,12 @@ function assertValidAuthTestCase(
   if (!data.module || typeof data.module !== "string") {
     throw new Error(`Missing/invalid 'module' in ${sourcePath}`);
   }
-  if (!data.flowKey || typeof data.flowKey !== "string") {
-    throw new Error(`Missing/invalid 'flowKey' in ${sourcePath}`);
+  const flowCode = data.flowCode ?? data.flowKey;
+  if (!flowCode || typeof flowCode !== "string") {
+    throw new Error(`Missing/invalid 'flowCode' in ${sourcePath}`);
+  }
+  if (!data.flowCode) {
+    data.flowCode = flowCode;
   }
   if (!data.testData || typeof data.testData !== "object") {
     throw new Error(`Missing/invalid 'testData' in ${sourcePath}`);

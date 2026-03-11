@@ -1,5 +1,4 @@
 import { test } from "@playwright/test";
-import { AppNavigator, AppPage } from "../../core/navigation/AppNavigator";
 import { loadAllTestCases } from "../../core/data/testCaseLoader";
 import { getFlowHandler } from "../../core/flows/flowResolver";
 import { logError, logInfo } from "../../core/utils/logger";
@@ -8,36 +7,29 @@ function buildTags(tags: string[]): string {
   return tags.map((tag) => `@${tag}`).join(" ");
 }
 
-const emailCases = loadAllTestCases("email");
+const moduleCases = loadAllTestCases("billing");
 
-test.describe("Email Module", () => {
+test.describe("billing Module", () => {
   test.beforeAll(() => {
-    logInfo("EMAIL-ORCH", `Loaded ${emailCases.length} email testcase(s)`);
+    logInfo("BILLING-ORCH", `Loaded ${moduleCases.length} billing testcase(s)`);
   });
 
-  test.beforeEach(async ({ page }) => {
-    const navigator = new AppNavigator(page);
-    await navigator.goTo(AppPage.EMAILS);
-  });
-
-  for (const testCase of emailCases) {
+  for (const testCase of moduleCases) {
     const tags = buildTags(testCase.tags || []);
     const testTitle = `${testCase.id} ${testCase.description} ${tags}`.trim();
 
     test(testTitle, async ({ page }, testInfo) => {
       logInfo(
-        "EMAIL-ORCH",
+        "BILLING-ORCH",
         `START ${testCase.id} | flowCode=${testCase.flowCode} | tags=${(testCase.tags || []).join(",")}`
       );
+
       const handler = getFlowHandler(testCase.module, testCase.flowCode);
       try {
         await handler(page, testCase);
-        logInfo("EMAIL-ORCH", `PASS ${testCase.id} | status=${testInfo.status}`);
+        logInfo("BILLING-ORCH", `PASS ${testCase.id} | status=${testInfo.status}`);
       } catch (error) {
-        logError(
-          "EMAIL-ORCH",
-          `FAIL ${testCase.id} | ${(error as Error).message}`
-        );
+        logError("BILLING-ORCH", `FAIL ${testCase.id} | ${(error as Error).message}`);
         throw error;
       }
     });

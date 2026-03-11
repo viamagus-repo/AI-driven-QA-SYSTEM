@@ -1,7 +1,7 @@
 {
   "id": "TC-AUTH-LOGIN-TC03",
   "module": "auth",
-  "flowKey": "loginInvalidPassword",
+  "flowCode": "loginInvalidPassword",
   "description": "Incorrect Password",
   "type": "negative",
   "priority": "high",

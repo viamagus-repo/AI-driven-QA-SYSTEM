@@ -1,7 +1,7 @@
 {
   "id": "TC-EMAIL-01",
   "module": "email",
-  "flowKey": "sendEmail",
+  "flowCode": "send",
   "description": "Send email",
   "type": "positive",
   "priority": "high",

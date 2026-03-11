@@ -3,7 +3,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as XLSX from "xlsx";
-import { logError, logInfo } from "../core/utils/logger";
+import { logError, logInfo, logWarn } from "../core/utils/logger";
 
 interface RawRow {
   [key: string]: unknown;
@@ -12,7 +12,7 @@ interface RawRow {
 interface ConvertedTestCase {
   id: string;
   module: string;
-  flowKey: string;
+  flowCode: string;
   description: string;
   type: string;
   priority: string;
@@ -75,26 +75,80 @@ function splitCsv(value: string): string[] {
     .filter(Boolean);
 }
 
+function normalize(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function normalizeModuleName(moduleDirName: string): string {
+  const lower = normalize(moduleDirName);
+  if (lower === "users") return "user";
+  if (lower === "emails") return "email";
+  return lower;
+}
+
+function validateFlowCode(moduleName: string, flowCode: string): void {
+  const flowsRoot = path.join(process.cwd(), "flows");
+  if (!fs.existsSync(flowsRoot)) return;
+
+  const moduleDirs = fs
+    .readdirSync(flowsRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory());
+
+  const matchedModuleDir = moduleDirs.find(
+    (entry) => normalizeModuleName(entry.name) === normalize(moduleName)
+  );
+
+  if (!matchedModuleDir) {
+    throw new Error(
+      `No flow folder found for module '${moduleName}' under ${flowsRoot}`
+    );
+  }
+
+  const flowFiles = fs
+    .readdirSync(path.join(flowsRoot, matchedModuleDir.name), { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".flow.ts"))
+    .map((entry) => entry.name.replace(/\.flow\.ts$/, ""));
+
+  const requested = normalize(flowCode);
+  const matches = flowFiles.filter((fileStem) => {
+    const stem = normalize(fileStem);
+    return stem === requested || stem.startsWith(requested) || requested.startsWith(stem);
+  });
+
+  if (matches.length === 1) return;
+
+  if (matches.length === 0) {
+    throw new Error(
+      `flowCode '${flowCode}' not found in module '${moduleName}'. Available flows: ${flowFiles.join(", ")}`
+    );
+  }
+
+  throw new Error(
+    `flowCode '${flowCode}' is ambiguous in module '${moduleName}'. Matches: ${matches.join(", ")}`
+  );
+}
+
 function toConvertedTestCase(row: RawRow): ConvertedTestCase {
   const id = asString(row.id);
   const moduleName = asString(row.module).toLowerCase();
-  const flowKey = asString(row.flowKey ?? row.flowkey);
+  const flowCode = asString(row.flowCode ?? row.flowcode ?? row.flowKey ?? row.flowkey);
   const description = asString(row.scenario);
   const type = asString(row.type);
   const priority = asString(row.priority);
   const suite = asString(row.suite);
   const tags = splitCsv(asString(row.tags));
 
-  if (!id || !moduleName || !flowKey) {
+  if (!id || !moduleName || !flowCode) {
     throw new Error(
-      `Missing required fields. Required: id, module, flowKey. Row id: '${id || "UNKNOWN"}'`
+      `Missing required fields. Required: id, module, flowCode. Row id: '${id || "UNKNOWN"}'`
     );
   }
+  validateFlowCode(moduleName, flowCode);
 
   return {
     id,
     module: moduleName,
-    flowKey,
+    flowCode,
     description,
     type,
     priority,
@@ -181,7 +235,11 @@ export function convertExcelToJson(inputFileOrDir: string, outputBaseDir: string
     const rawRows = XLSX.utils.sheet_to_json<RawRow>(sheet);
 
     if (!rawRows.length) {
-      throw new Error(`No rows found in sheet '${sheetName}' for file ${file}`);
+      logWarn(
+        "EXCEL-TO-JSON",
+        `No testcase rows found in sheet '${sheetName}' for file ${file}. Skipping file.`
+      );
+      continue;
     }
     logInfo(
       "EXCEL-TO-JSON",
@@ -207,7 +265,7 @@ export function convertExcelToJson(inputFileOrDir: string, outputBaseDir: string
       for (const testCase of byModule[moduleName]) {
         logInfo(
           "EXCEL-TO-JSON",
-          `Writing testcase '${testCase.id}' (flowKey=${testCase.flowKey})`
+          `Writing testcase '${testCase.id}' (flowCode=${testCase.flowCode})`
         );
         fs.writeFileSync(
           path.join(moduleDir, `${testCase.id}.json`),

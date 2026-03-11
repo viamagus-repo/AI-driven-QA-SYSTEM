@@ -1,8 +1,8 @@
 {
-  "id": "TC-USER-03",
+  "id": "TC-USER-SEARCH-PHY-04",
   "module": "user",
-  "flowKey": "editUserPassword",
-  "description": "Edit user password",
+  "flowCode": "search",
+  "description": "Search Pysicians",
   "type": "positive",
   "priority": "medium",
   "suite": "e2e",
@@ -10,11 +10,10 @@
     "e2e"
   ],
   "steps": "Change password for an existing user.",
-  "expectedResult": "Password changed confirmation should be visible",
+  "expectedResult": "naviagte to phycisians and search for doc",
   "testData": {
     "input": {
-      "searchName": "John Nolan",
-      "newPassword": "Suhas@123"
+      "searchName": "Lokid"
     },
     "expectedData": {
       "success": true,

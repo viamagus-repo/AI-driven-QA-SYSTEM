@@ -1,20 +1,8 @@
-import { test, Page } from "@playwright/test";
+import { test } from "@playwright/test";
 import { AppNavigator, AppPage } from "../../core/navigation/AppNavigator";
-import { BaseTestCase } from "../../core/data/authTypes";
 import { loadAllTestCases } from "../../core/data/testCaseLoader";
-import { CreateUser } from "../../flows/Users/create.flow";
-import { DeleteUser } from "../../flows/Users/delete.flow";
-import { EditUserPassword } from "../../flows/Users/edituserpass.flow";
 import { logError, logInfo } from "../../core/utils/logger";
-
-type UserFlowKey = "createUser" | "deleteUser" | "editUserPassword";
-
-const flowHandlers: Record<UserFlowKey, (page: Page, testCase: BaseTestCase) => Promise<void>> =
-  {
-    createUser: CreateUser,
-    deleteUser: DeleteUser,
-    editUserPassword: EditUserPassword,
-  };
+import { getFlowHandler } from "../../core/flows/flowResolver";
 
 function buildTags(tags: string[]): string {
   return tags.map((tag) => `@${tag}`).join(" ");
@@ -39,21 +27,16 @@ test.describe("User Module", () => {
     test(testTitle, async ({ page }, testInfo) => {
       logInfo(
         "USER-ORCH",
-        `START ${testCase.id} | flowKey=${testCase.flowKey} | tags=${(testCase.tags || []).join(",")}`
+        `START ${testCase.id} | flowCode=${testCase.flowCode} | tags=${(testCase.tags || []).join(",")}`,
       );
-      const handler = flowHandlers[testCase.flowKey as UserFlowKey];
-      if (!handler) {
-        throw new Error(
-          `Unknown flowKey '${testCase.flowKey}' for testcase '${testCase.id}'`
-        );
-      }
+      const handler = getFlowHandler(testCase.module, testCase.flowCode);
       try {
         await handler(page, testCase);
         logInfo("USER-ORCH", `PASS ${testCase.id} | status=${testInfo.status}`);
       } catch (error) {
         logError(
           "USER-ORCH",
-          `FAIL ${testCase.id} | ${(error as Error).message}`
+          `FAIL ${testCase.id} | ${(error as Error).message}`,
         );
         throw error;
       }

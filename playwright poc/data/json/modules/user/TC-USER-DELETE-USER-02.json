@@ -1,7 +1,7 @@
 {
-  "id": "TC-USER-02",
+  "id": "TC-USER-DELETE-USER-02",
   "module": "user",
-  "flowKey": "deleteUser",
+  "flowCode": "delete",
   "description": "Delete user",
   "type": "positive",
   "priority": "high",

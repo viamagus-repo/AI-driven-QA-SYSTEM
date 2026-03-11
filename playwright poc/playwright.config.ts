@@ -55,5 +55,13 @@ export default defineConfig({
         storageState: "storage/auth.json",
       },
     },
+    {
+      name: "billing",
+      dependencies: ["auth-setup"],
+      testDir: "./tests/billing",
+      use: {
+        storageState: "storage/auth.json",
+      },
+    },
   ],
 });

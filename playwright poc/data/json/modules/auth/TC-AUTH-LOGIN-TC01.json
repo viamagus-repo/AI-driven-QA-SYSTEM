@@ -1,7 +1,7 @@
 {
   "id": "TC-AUTH-LOGIN-TC01",
   "module": "auth",
-  "flowKey": "loginValid",
+  "flowCode": "loginValid",
   "description": "Valid Login with Standard User",
   "type": "positive",
   "priority": "critical",

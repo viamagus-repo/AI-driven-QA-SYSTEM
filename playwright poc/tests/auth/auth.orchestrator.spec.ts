@@ -1,22 +1,8 @@
 import { test } from "@playwright/test";
 import { AppNavigator, AppPage } from "../../core/navigation/AppNavigator";
-import { AuthFlowKey, AuthTestCase } from "../../core/data/authTypes";
 import { loadAllTestCases } from "../../core/data/testCaseLoader";
-import { loginValid } from "../../flows/auth/loginValid.flow";
-import { loginInvalidUsername } from "../../flows/auth/loginInvalidUsername.flow";
-import { loginInvalidPassword } from "../../flows/auth/loginInvalidPassword.flow";
-import { loginLogout } from "../../flows/auth/loginLogout.flow";
+import { getFlowHandler } from "../../core/flows/flowResolver";
 import { logError, logInfo } from "../../core/utils/logger";
-
-const flowHandlers: Record<
-  AuthFlowKey,
-  (page: Parameters<typeof loginValid>[0], testCase: AuthTestCase) => Promise<void>
-> = {
-  loginValid,
-  loginInvalidUsername,
-  loginInvalidPassword,
-  loginLogout,
-};
 
 function buildTags(tags: string[]): string {
   return tags.map((tag) => `@${tag}`).join(" ");
@@ -36,18 +22,13 @@ test.describe("Auth Module", () => {
     test(testTitle, async ({ page }, testInfo) => {
       logInfo(
         "AUTH-ORCH",
-        `START ${testCase.id} | flowKey=${testCase.flowKey} | tags=${(testCase.tags || []).join(",")}`
+        `START ${testCase.id} | flowCode=${testCase.flowCode} | tags=${(testCase.tags || []).join(",")}`
       );
 
       const nav = new AppNavigator(page);
       await nav.goTo(AppPage.LOGIN);
 
-      const handler = flowHandlers[testCase.flowKey];
-      if (!handler) {
-        throw new Error(
-          `Unknown flowKey '${testCase.flowKey}' for testcase '${testCase.id}'`
-        );
-      }
+      const handler = getFlowHandler(testCase.module, testCase.flowCode);
 
       try {
         await handler(page, testCase);

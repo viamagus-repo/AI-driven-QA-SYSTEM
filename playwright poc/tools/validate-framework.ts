@@ -3,7 +3,13 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as XLSX from "xlsx";
+import { validateFlowInputData } from "../core/data/flowInputSchemas";
 import { logError, logInfo } from "../core/utils/logger";
+import { RuntimeTestCaseSchema } from "../core/data/testCaseSchema";
+import {
+  normalizeModuleValue,
+  resolveModuleFromAvailable,
+} from "../core/utils/moduleNames";
 
 type RawRow = Record<string, unknown>;
 
@@ -17,19 +23,20 @@ function toCamelCase(key: string): string {
 }
 
 function normalize(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function normalizeModuleName(value: string): string {
-  const lower = normalize(value);
-  if (lower === "users") return "user";
-  if (lower === "emails") return "email";
-  return lower;
+  return normalizeModuleValue(value);
 }
 
 function asString(value: unknown): string {
   if (value === undefined || value === null) return "";
   return String(value).trim();
+}
+
+function parseJsonObject(value: unknown): Record<string, unknown> | undefined {
+  const raw = asString(value);
+  if (!raw) {
+    return undefined;
+  }
+  return JSON.parse(raw) as Record<string, unknown>;
 }
 
 function normalizeKeys(row: RawRow): RawRow {
@@ -51,7 +58,7 @@ function buildFlowIndex(flowsRoot: string): FlowIndex {
     .filter((entry) => entry.isDirectory());
 
   for (const moduleDir of moduleDirs) {
-    const normalizedModule = normalizeModuleName(moduleDir.name);
+    const normalizedModule = normalize(moduleDir.name);
     const stems = fs
       .readdirSync(path.join(flowsRoot, moduleDir.name), { withFileTypes: true })
       .filter((entry) => entry.isFile() && entry.name.endsWith(".flow.ts"))
@@ -65,7 +72,8 @@ function buildFlowIndex(flowsRoot: string): FlowIndex {
 }
 
 function validateFlowCodeMatch(moduleName: string, flowCode: string, flowIndex: FlowIndex): string[] {
-  const moduleFlows = flowIndex[normalizeModuleName(moduleName)];
+  const resolvedModuleName = resolveModuleFromAvailable(moduleName, Object.keys(flowIndex));
+  const moduleFlows = resolvedModuleName ? flowIndex[resolvedModuleName] : undefined;
   if (!moduleFlows) {
     return [`No flow folder found for module '${moduleName}'`];
   }
@@ -130,6 +138,12 @@ function validateExcelFiles(excelRoot: string, flowIndex: FlowIndex): string[] {
       for (const issue of flowIssues) {
         issues.push(`${file} [${sheetName} row ${rowNum}] id=${id} module=${moduleName}: ${issue}`);
       }
+
+      try {
+        validateFlowInputData(moduleName, flowCode, parseJsonObject(row.input) || {});
+      } catch (error) {
+        issues.push(`${file} [${sheetName} row ${rowNum}] id=${id} module=${moduleName}: ${(error as Error).message}`);
+      }
     });
   }
 
@@ -157,11 +171,24 @@ function validateGeneratedJson(jsonModulesRoot: string): string[] {
     for (const file of files) {
       const raw = fs.readFileSync(file, "utf8");
       try {
-        const parsed = JSON.parse(raw) as Record<string, unknown>;
-        const id = asString(parsed.id) || path.basename(file);
-        const flowCode = asString(parsed.flowCode ?? parsed.flowKey);
-        if (!flowCode) {
-          issues.push(`${file} id=${id}: Missing 'flowCode'`);
+        const parsed = JSON.parse(raw) as unknown;
+        const id = asString((parsed as Record<string, unknown>)?.id) || path.basename(file);
+        const schemaResult = RuntimeTestCaseSchema.safeParse(parsed);
+        if (!schemaResult.success) {
+          const issueText = schemaResult.error.issues
+            .map((issue) => `${issue.path.join(".") || "<root>"}: ${issue.message}`)
+            .join("; ");
+          issues.push(`${file} id=${id}: ${issueText}`);
+        } else {
+          try {
+            validateFlowInputData(
+              schemaResult.data.module,
+              schemaResult.data.flowCode,
+              schemaResult.data.testData.input
+            );
+          } catch (error) {
+            issues.push(`${file} id=${id}: ${(error as Error).message}`);
+          }
         }
       } catch (error) {
         issues.push(`${file}: Invalid JSON (${(error as Error).message})`);

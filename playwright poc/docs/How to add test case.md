@@ -197,13 +197,23 @@ npm run test:controlled
 If module/screen does not exist yet:
 
 ```bash
-npm run generate:module -- <moduleName>
+npm run generate:module -- <moduleName> --route=/staff/<moduleName>
 ```
 
 Then:
 1. Add row in generated Excel file.
-2. Add flow file `flows/<moduleName>/<flowCode>.flow.ts`.
+2. Add flow file `flows/<moduleName>/<flowCode>.flow.ts` or scaffold it:
+```bash
+npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>
+```
 3. Run validate/prep/test steps from above.
+
+Notes:
+1. If `--route` is not passed, generator prompts for route.
+2. Generator also updates `AppNavigator` and ensures module orchestrator has:
+   - `const nav = new AppNavigator(page);`
+   - `await nav.goTo(AppPage.<MODULE>);`
+3. `generate:flow` creates a typed flow scaffold that imports the module page object and validated input helper.
 
 ## Quick Checklist
 1. Excel row added with valid `flowCode`.

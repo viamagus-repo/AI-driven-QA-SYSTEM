@@ -125,6 +125,63 @@ ${projects}});
   logInfo("RESET-FRAMEWORK", `Reset playwright config: ${configPath}`);
 }
 
+function resetAppNavigator(appNavigatorPath: string, dryRun: boolean): void {
+  const content = `import { Page } from "@playwright/test";
+
+export enum AppPage {
+  HOME = "home",
+  LOGIN = "login",
+}
+
+const ROUTES: Record<AppPage, string> = {
+  [AppPage.LOGIN]: "/",
+  [AppPage.HOME]: "/staff/appointments",
+};
+
+const pagesWithFreshBootInit = new WeakSet<Page>();
+
+async function ensureFreshBootInitScript(page: Page): Promise<void> {
+  if (pagesWithFreshBootInit.has(page)) {
+    return;
+  }
+
+  await page.addInitScript(() => {
+    // Keep auth keys only; drop persisted app cache keys to avoid stale UI hydration.
+    const auth = window.localStorage.getItem("auth");
+    const oAuthKey = window.localStorage.getItem("O_AUTH_KEY");
+    window.localStorage.clear();
+    if (auth) window.localStorage.setItem("auth", auth);
+    if (oAuthKey) window.localStorage.setItem("O_AUTH_KEY", oAuthKey);
+  });
+
+  pagesWithFreshBootInit.add(page);
+}
+
+export class AppNavigator {
+  constructor(private readonly page: Page) {}
+
+  async goTo(target: AppPage) {
+    const route = ROUTES[target];
+
+    if (!route) {
+      throw new Error(\`Route not defined for page: \${target}\`);
+    }
+
+    await ensureFreshBootInitScript(this.page);
+    await this.page.goto(route);
+    await this.page.waitForLoadState("networkidle");
+  }
+}
+`;
+
+  if (dryRun) {
+    logInfo("RESET-FRAMEWORK", `[dry-run] reset AppNavigator: ${appNavigatorPath}`);
+    return;
+  }
+  fs.writeFileSync(appNavigatorPath, content, "utf8");
+  logInfo("RESET-FRAMEWORK", `Reset AppNavigator: ${appNavigatorPath}`);
+}
+
 function askQuestion(question: string): Promise<string> {
   const rl = createInterface({
     input: process.stdin,
@@ -164,6 +221,7 @@ async function resetFramework(options: Options): Promise<void> {
 
   const flowsDir = path.join(root, "flows");
   const testsDir = path.join(root, "tests");
+  const pagesModulesDir = path.join(root, "core", "pages", "modules");
   const excelTestsDir = path.join(root, "data", "excel", "tests");
   const jsonModulesDir = path.join(root, "data", "json", "modules");
 
@@ -172,6 +230,7 @@ async function resetFramework(options: Options): Promise<void> {
   const playwrightReportDir = path.join(root, "playwright-report");
   const testResultsDir = path.join(root, "test-results");
   const playwrightConfigPath = path.join(root, "playwright.config.ts");
+  const appNavigatorPath = path.join(root, "core", "navigation", "AppNavigator.ts");
 
   logWarn(
     "RESET-FRAMEWORK",
@@ -188,6 +247,13 @@ async function resetFramework(options: Options): Promise<void> {
   cleanDirectory(
     testsDir,
     (name, _fullPath, isDir) => Boolean(options.keepAuth && isDir && name.toLowerCase() === "auth"),
+    options.dryRun
+  );
+
+  cleanDirectory(
+    pagesModulesDir,
+    (name, _fullPath, isDir) =>
+      Boolean(options.keepAuth && !isDir && name.toLowerCase() === "auth.page.ts"),
     options.dryRun
   );
 
@@ -213,6 +279,7 @@ async function resetFramework(options: Options): Promise<void> {
   removeDir(playwrightReportDir, options.dryRun);
   removeDir(testResultsDir, options.dryRun);
   resetPlaywrightConfig(playwrightConfigPath, options.keepAuth, options.dryRun);
+  resetAppNavigator(appNavigatorPath, options.dryRun);
 
   logInfo("RESET-FRAMEWORK", "Reset completed.");
   if (options.dryRun) {

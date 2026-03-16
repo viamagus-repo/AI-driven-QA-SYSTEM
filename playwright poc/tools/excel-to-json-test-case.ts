@@ -3,7 +3,13 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as XLSX from "xlsx";
+import { validateFlowInputData } from "../core/data/flowInputSchemas";
+import { RuntimeTestCaseSchema } from "../core/data/testCaseSchema";
 import { logError, logInfo, logWarn } from "../core/utils/logger";
+import {
+  normalizeModuleValue,
+  resolveModuleFromAvailable,
+} from "../core/utils/moduleNames";
 
 interface RawRow {
   [key: string]: unknown;
@@ -76,14 +82,7 @@ function splitCsv(value: string): string[] {
 }
 
 function normalize(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function normalizeModuleName(moduleDirName: string): string {
-  const lower = normalize(moduleDirName);
-  if (lower === "users") return "user";
-  if (lower === "emails") return "email";
-  return lower;
+  return normalizeModuleValue(value);
 }
 
 function validateFlowCode(moduleName: string, flowCode: string): void {
@@ -94,9 +93,13 @@ function validateFlowCode(moduleName: string, flowCode: string): void {
     .readdirSync(flowsRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory());
 
-  const matchedModuleDir = moduleDirs.find(
-    (entry) => normalizeModuleName(entry.name) === normalize(moduleName)
+  const matchedModuleDirName = resolveModuleFromAvailable(
+    moduleName,
+    moduleDirs.map((entry) => entry.name)
   );
+  const matchedModuleDir = matchedModuleDirName
+    ? moduleDirs.find((entry) => entry.name === matchedModuleDirName)
+    : undefined;
 
   if (!matchedModuleDir) {
     throw new Error(
@@ -130,7 +133,7 @@ function validateFlowCode(moduleName: string, flowCode: string): void {
 
 function toConvertedTestCase(row: RawRow): ConvertedTestCase {
   const id = asString(row.id);
-  const moduleName = asString(row.module).toLowerCase();
+  const moduleName = normalizeModuleValue(asString(row.module));
   const flowCode = asString(row.flowCode ?? row.flowcode ?? row.flowKey ?? row.flowkey);
   const description = asString(row.scenario);
   const type = asString(row.type);
@@ -145,7 +148,7 @@ function toConvertedTestCase(row: RawRow): ConvertedTestCase {
   }
   validateFlowCode(moduleName, flowCode);
 
-  return {
+  const candidate: ConvertedTestCase = {
     id,
     module: moduleName,
     flowCode,
@@ -161,6 +164,17 @@ function toConvertedTestCase(row: RawRow): ConvertedTestCase {
       expectedData: parseJsonColumn(id, "expectedData", row.expectedData),
     },
   };
+
+  const parsed = RuntimeTestCaseSchema.safeParse(candidate);
+  if (!parsed.success) {
+    const issues = parsed.error.issues
+      .map((issue) => `${issue.path.join(".") || "<root>"}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Invalid testcase data for ${id}: ${issues}`);
+  }
+
+  validateFlowInputData(moduleName, flowCode, candidate.testData.input);
+  return parsed.data as ConvertedTestCase;
 }
 
 function writeModuleConfig(

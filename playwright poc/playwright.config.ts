@@ -1,4 +1,4 @@
-﻿import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 import * as dotenv from "dotenv";
 
 dotenv.config({ quiet: true });
@@ -14,7 +14,7 @@ export default defineConfig({
   reporter: "html",
 
   use: {
-    baseURL: process.env.BASE_URL || "https://web-tmp.ognomy.com",
+    baseURL: process.env.BASE_URL || "https://example.com",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -24,7 +24,7 @@ export default defineConfig({
   },
 
   projects: [
-    {
+{
       name: "auth-setup",
       testMatch: /tests\/auth\/auth\.setup\.spec\.ts/,
       use: {
@@ -32,7 +32,7 @@ export default defineConfig({
         headless: true,
       },
     },
-    {
+{
       name: "auth",
       testMatch: /tests\/auth\/auth\.orchestrator\.spec\.ts/,
       use: {
@@ -42,26 +42,10 @@ export default defineConfig({
     {
       name: "users",
       dependencies: ["auth-setup"],
-      testDir: "./tests/Users",
+      testDir: "./tests/users",
       use: {
         storageState: "storage/auth.json",
       },
-    },
-    {
-      name: "emails",
-      dependencies: ["auth-setup"],
-      testDir: "./tests/emails",
-      use: {
-        storageState: "storage/auth.json",
-      },
-    },
-    {
-      name: "billing",
-      dependencies: ["auth-setup"],
-      testDir: "./tests/billing",
-      use: {
-        storageState: "storage/auth.json",
-      },
-    },
+    }
   ],
 });

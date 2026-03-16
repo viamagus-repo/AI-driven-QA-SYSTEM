@@ -1,8 +1,0 @@
-{
-  "module": "billing",
-  "lastUpdated": "2026-03-11",
-  "description": "billing module test suite configuration",
-  "suites": {},
-  "testDataFiles": {},
-  "tags": {}
-}

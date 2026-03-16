@@ -16,6 +16,38 @@ It covers:
 - Playwright project execution
 - orchestrator behavior
 - dynamic flow resolution and flow function execution
+- validated input schema enforcement for known flows
+
+## 0. Module Lifecycle Automation (Onboard/Offboard)
+
+### Onboard new module
+```bash
+npm run generate:module -- <moduleName> --route=/staff/<moduleName>
+```
+
+### Scaffold new flow (recommended)
+```bash
+npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>
+```
+
+Flow generator creates:
+1. `flows/<module>/<flowCode>.flow.ts` using `getValidatedInput(...)`
+2. schema entry in `core/data/flowInputSchemas.ts`
+3. module page object scaffold linkage
+
+Generator updates:
+1. module scaffold files (`flows/tests/json/excel`)
+2. Playwright project entry
+3. `AppNavigator` enum + route mapping
+4. module orchestrator navigation lines
+
+### Remove existing module safely
+```bash
+npm run delete:module -- <moduleName> --dry-run
+npm run delete:module -- <moduleName> --yes
+```
+
+Delete command removes only module-specific artifacts and related routing/project entries.
 
 ## 1. Entry Point: npm Script
 
@@ -45,7 +77,8 @@ It covers:
 ### Key inputs
 - `TEST_TYPE` (`suite` or `module`)
 - `TEST_SUITE` (`smoke`, `regression`, `e2e`) when `TEST_TYPE=suite`
-- `TEST_MODULE` (`auth`, `user`, `email`) when `TEST_TYPE=module`
+- `TEST_MODULE` (`auth`, `user`, `email`, `billing`, or any generated module) when `TEST_TYPE=module`
+- Module names are exact after lowercase normalization (example: `users` is distinct from `user`).
 
 ### When executed
 - Immediately after npm invokes `ts-node`.
@@ -57,13 +90,13 @@ It covers:
 - Loads env via `dotenv.config()`.
 - If `TEST_TYPE=suite`:
   1. `npm run testdata:prepare`
-  2. `npx playwright test tests/auth/auth.orchestrator.spec.ts tests/Users/user.orchestrator.spec.ts tests/emails/email.orchestrator.spec.ts --grep "@<suite>"`
+  2. `npx playwright test <all discovered orchestrators> --grep "@<suite>"`
 - If `TEST_TYPE=module`:
   1. `npm run testdata:prepare`
   2. Runs one orchestrator file with project mapping:
      - auth -> `--project=auth`
-     - user -> `--project=users`
-     - email -> `--project=emails`
+     - user -> `--project=user`
+     - email -> `--project=email`
 
 ## 3. Environment Configuration
 
@@ -131,6 +164,7 @@ npm run validate:framework
 5. Flags ambiguous `flowCode` matches.
 6. Flags missing module flow folders.
 7. Validates generated JSON parseability and `flowCode` presence.
+8. Validates known flow input schemas against `input` payloads.
 
 ### Error detail format
 - file path + sheet + row number + testcase id + module + issue text
@@ -157,12 +191,12 @@ npm run validate:framework
 - Import per flow file.
 - Registry structure like:
   - `auth -> { loginValid, ... }`
-  - `user -> { create, delete, ... }`
+  - `users -> { create, delete, ... }`
   - `email -> { send, ... }`
 
 ### How generation actually works (step-by-step)
 1. Reads the `flows/` directory.
-2. Discovers module folders under `flows/` (for example `auth`, `Users`, `email`).
+2. Discovers module folders under `flows/` (for example `auth`, `users`, `email`).
 3. In each module folder, collects files matching `*.flow.ts`.
 4. Derives `flowCode` from file stem:
    - `loginValid.flow.ts` -> `loginValid`
@@ -192,7 +226,7 @@ npm run validate:framework
 
 ### Input files
 - `data/excel/tests/Auth_Test_Cases.xlsx`
-- `data/excel/tests/User_Test_Cases.xlsx`
+- `data/excel/tests/Users_Test_Cases.xlsx`
 - `data/excel/tests/Email_Test_Cases.xlsx`
 
 ### Output files
@@ -244,11 +278,11 @@ npm run validate:framework
 - `baseURL` from env
 
 ### Project dependency behavior
-- `users` and `emails` depend on `auth-setup`.
-- So Playwright runs `auth-setup` first to create `storage/auth.json`, then user/email tests use that state.
+- Non-auth modules can depend on `auth-setup`.
+- So Playwright runs `auth-setup` first to create `storage/auth.json`, then dependent module tests use that state.
 
 ### Note
-- `playwright.config.ts` currently defines `emails` project twice. This is likely unintended duplication and should be cleaned up.
+- Keep Playwright project names aligned with generated module names/directories.
 
 ## 8. Setup Project (Authentication State)
 
@@ -258,7 +292,7 @@ npm run validate:framework
 - Logs in once using `loginValid` flow and writes sanitized storage state to `storage/auth.json`.
 
 ### When executed
-- Automatically before `users` or `emails` projects due to project dependency.
+- Automatically before `user` or `email` projects due to project dependency.
 
 ### Why required
 - User/email modules appear to require authenticated session.
@@ -292,8 +326,8 @@ npm run validate:framework
 
 ### Files
 - `tests/auth/auth.orchestrator.spec.ts`
-- `tests/Users/user.orchestrator.spec.ts`
-- `tests/emails/email.orchestrator.spec.ts`
+- `tests/users/users.orchestrator.spec.ts`
+- `tests/email/email.orchestrator.spec.ts`
 
 ### Purpose
 - Convert JSON cases into Playwright `test(...)` definitions.
@@ -331,7 +365,7 @@ npm run validate:framework
 - Allows QA to control execution via Excel `flowCode`.
 
 ### Resolution strategy
-1. Find module bucket (`auth/user/email`) in generated registry.
+1. Find module bucket (exact module name) in generated registry.
 2. Find flow by exact match first.
 3. If not exact, allow unambiguous startsWith compatibility.
 4. Determine function to run:
@@ -344,7 +378,7 @@ npm run validate:framework
 ### File: `core/navigation/AppNavigator.ts`
 
 ### Purpose
-- Defines route map (`LOGIN`, `USERS`, `EMAILS`, `HOME`).
+- Defines route map (baseline includes `LOGIN` and `HOME`, module entries are generated).
 - Applies fresh-init script to clear stale localStorage cache keys while preserving auth keys.
 - Performs `page.goto(route)` + `waitForLoadState("networkidle")`.
 
@@ -358,7 +392,7 @@ npm run validate:framework
 
 ### Files (examples)
 - `flows/auth/loginValid.flow.ts`
-- `flows/Users/create.flow.ts`
+- `flows/users/create.flow.ts`
 - `flows/email/send.flow.ts`
 
 ### Purpose
@@ -371,9 +405,8 @@ npm run validate:framework
 - Isolates test logic from orchestration/data plumbing.
 
 ### Data dependency
-- Most flows call `getTestData(testCase)` from `core/data/testData.ts` to access:
-  - `testData.input`
-  - optional `testData.expectedData`
+- Generated and modernized flows use `getValidatedInput(...)` with a flow schema.
+- Existing flows may still use `getTestData(testCase)` for backward compatibility.
 
 ## 14. Logging Utility
 
@@ -409,7 +442,7 @@ npm run test:controlled
 11. `prepare-data.ts` exits successfully.
 12. `test-control.ts` invokes Playwright command based on suite/module mode.
 13. Playwright loads `playwright.config.ts` and project graph.
-14. If project is `users`/`emails`, Playwright runs dependency project `auth-setup` first.
+14. If project has `auth-setup` dependency, Playwright runs setup first.
 15. `tests/auth/auth.setup.spec.ts` logs in and writes `storage/auth.json`.
 16. Playwright executes selected orchestrator spec file(s).
 17. Orchestrator calls `loadAllTestCases(module)` from `testCaseLoader`.
@@ -473,7 +506,7 @@ tools/generate-flow-registry.ts    tools/excel-to-json-test-case.ts
               |                     |
               v                     v
       auth-setup dependency    selected project(s)
-      tests/auth/auth.setup    auth/user/email orchestrator
+      tests/auth/auth.setup    auth/users/email orchestrator
       write storage/auth.json  specs
                                     |
                                     v

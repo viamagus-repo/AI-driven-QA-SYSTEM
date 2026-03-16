@@ -1,290 +1,151 @@
-# Playwright Framework Flow Documentation
-
-## 1) High-Level Execution Flow
-
-This test framework is data-driven and orchestrator-based.
-
-Execution path for each module follows this sequence:
-1. Playwright loads an orchestrator spec under `tests/`.
-2. Orchestrator calls `loadAllTestCases(moduleName)` from `core/data/testCaseLoader.ts`.
-3. Loader reads module `config.json` and resolves each testcase JSON file path.
-4. Each testcase JSON is validated into `BaseTestCase` shape.
-5. Orchestrator iterates testcases and dynamically creates one Playwright `test(...)` per testcase.
-6. For each testcase, orchestrator maps `flowKey` to a concrete flow function.
-7. Flow function reads `testData.input` (and optional `expectedData`) using `getTestData(...)`.
-8. UI actions run via Playwright locators and then assertions are executed.
-9. Structured logs (`START`, `PASS`, `FAIL`) are emitted using `core/utils/logger.ts`.
-
-This gives centralized data management (JSON), reusable UI flows (`flows/`), and thin module orchestrators (`tests/*/*.orchestrator.spec.ts`).
-
----
-
-## 2) Core Files and Responsibilities
-
-### `core/data/authTypes.ts`
-Defines shared TypeScript contracts used across modules:
-- `AuthFlowKey`: allowed auth flow keys (`loginValid`, `loginInvalidUsername`, etc.).
-- `BaseTestCase`: common schema all testcase JSON files must satisfy.
-- `AuthTestCase`: typed auth testcase where `flowKey` is narrowed to `AuthFlowKey`.
-- `ModuleConfig`: schema for each module `config.json`.
-
-Purpose:
-- Keeps orchestrators and flows strongly typed.
-- Establishes a common data model for all module testcase files.
-
-### `core/data/testCaseLoader.ts`
-Central data-loading layer.
-
-Key behavior:
-- `readJsonFile<T>(filePath)`: validates file existence and JSON parse safety.
-- `getModuleBasePath(moduleName)`: resolves `data/json/modules/<moduleName>`.
-- `assertValidAuthTestCase(...)`: runtime validation for required testcase fields (`id`, `module`, `flowKey`, `testData.input`).
-- `loadModuleConfig(moduleName)`: loads module `config.json`.
-- `loadTestCase(moduleName, testCaseId)`: loads one testcase by id using config mapping.
-- `loadAllTestCases(moduleName)`: loads all testcase files listed in config.
-
-Purpose:
-- Decouples testcase storage from execution.
-- Fails early for bad/missing JSON or malformed testcase shape.
-
-### `core/data/testData.ts`
-Small guard + accessor for testcase payload:
-- `getTestData(testCase)` ensures `testData` and `testData.input` exist.
-- Returns `{ input, expectedData? }` bag.
-
-Purpose:
-- Keeps individual flows clean by avoiding repeated null/shape checks.
-
-### `core/navigation/AppNavigator.ts`
-URL routing helper with page-level bootstrap hygiene.
-
-Key behavior:
-- `AppPage` enum: `HOME`, `USERS`, `EMAILS`, `LOGIN`.
-- `ROUTES` maps enum to app routes.
-- `ensureFreshBootInitScript(page)` injects init script once per page instance using `WeakSet`:
-  - preserves `auth` and `O_AUTH_KEY` localStorage entries,
-  - clears other localStorage keys to reduce stale cache hydration side effects.
-- `goTo(target)`:
-  - validates target route,
-  - applies init script,
-  - performs `page.goto(route)`,
-  - waits for `networkidle`.
-
-Purpose:
-- Standardized navigation entrypoint.
-- More deterministic test startup state between tests.
-
-### `core/utils/logger.ts`
-Simple structured logging utility.
-
-Behavior:
-- Produces timestamped lines: `[ISO_TIME] [LEVEL] [SCOPE] message`.
-- `logInfo`, `logWarn`, `logError` wrappers.
-- Routes errors to `console.error`, warnings to `console.warn`, others to `console.log`.
-
-Purpose:
-- Consistent log format across modules/orchestrators for CI/debug triage.
-
----
-
-## 3) Orchestrator Files (Dynamic Test Builders)
-
-### `tests/auth/auth.orchestrator.spec.ts`
-Role:
-- Auth module orchestrator.
-
-Flow:
-1. Imports auth flows and builds `flowHandlers` map keyed by `AuthFlowKey`.
-2. Loads all auth testcases using `loadAllTestCases("auth")`.
-3. For each testcase:
-   - constructs title as `<id> <description> @tag1 @tag2 ...`.
-   - navigates to login page via `AppNavigator.goTo(AppPage.LOGIN)`.
-   - resolves and executes handler via `flowKey`.
-   - logs start/pass/fail.
-4. Throws explicit error for unknown flow keys.
-
-Why this matters:
-- Adding a new auth testcase generally requires JSON entry + flow handler mapping, not duplicating test boilerplate.
-
-### `tests/Users/user.orchestrator.spec.ts`
-Role:
-- User module orchestrator.
-
-Flow:
-1. Builds `flowHandlers` map for:
-   - `createUser -> CreateUser`
-   - `deleteUser -> DeleteUser`
-   - `editUserPassword -> EditUserPassword`
-2. Loads all user testcases (`loadAllTestCases("user")`).
-3. `beforeEach` navigates to Users page (`AppPage.USERS`).
-4. Generates one Playwright test per testcase and dispatches by `flowKey`.
-5. Logs start/pass/fail and throws on unknown key.
-
-Why this matters:
-- User scenario execution is data-driven and centralized in one spec.
-
-### `tests/emails/email.orchestrator.spec.ts`
-Role:
-- Email module orchestrator.
-
-Flow:
-1. Maps `sendEmail -> sendemail` in `flowHandlers`.
-2. Loads email cases (`loadAllTestCases("email")`).
-3. `beforeEach` navigates to Emails page (`AppPage.EMAILS`).
-4. Executes mapped flow for each testcase.
-5. Logs start/pass/fail and validates `flowKey` presence in map.
-
-Why this matters:
-- Consistent orchestration pattern with other modules.
-
----
-
-## 4) Flow Files (Actual UI Actions + Assertions)
-
-### Auth flows
-
-#### `flows/auth/loginValid.flow.ts`
-- Reads `email`, `password` from testcase input.
-- Acknowledges splash, fills credentials, clicks login.
-- Waits briefly and asserts URL contains `staff/appointments`.
-
-#### `flows/auth/loginInvalidUsername.flow.ts`
-- Reads invalid email + password.
-- Attempts login.
-- Uses `expectedData.message` fallbacking to `Invalid credentials`.
-- Asserts error message visibility.
-
-Note:
-- Current `TC-AUTH-LOGIN-TC02.json` has `expectedData.errors[0].message` (nested), not `expectedData.message` (flat), so fallback text path is likely used unless data model is adjusted.
-
-#### `flows/auth/loginInvalidPassword.flow.ts`
-- Uses valid email + invalid password.
-- Attempts login and asserts visible alert.
-
-#### `flows/auth/loginLogout.flow.ts`
-- Reuses `loginValid(...)` first (composition).
-- Clicks profile text and logout icon.
-- Asserts warning dialog appears.
-
-Purpose of auth flows:
-- Keep UI steps reusable and independently maintainable from orchestrator logic.
-
-### User flows
-
-#### `flows/Users/create.flow.ts`
-- Reads user profile input fields.
-- Fills name, DOB picker (year/month/day), email, reason, phone, state.
-- Submits form.
-- Locates user row by full name and handles 3 outcomes:
-  - exactly 1 match -> assert visible,
-  - more than 1 match -> assert first is visible,
-  - none -> throw explicit error.
-
-#### `flows/Users/delete.flow.ts`
-- Quick-searches by `searchName`.
-- Finds trash icons and handles count-based branching:
-  - 1 icon -> click,
-  - >1 -> click first,
-  - 0 -> throw error.
-- Confirms deletion and asserts success text.
-
-#### `flows/Users/edituserpass.flow.ts`
-- Searches user by name.
-- Opens user details, navigates to password change action.
-- Fills new password and submits.
-- Asserts password-change confirmation text.
-
-### Email flow
-
-#### `flows/email/send.flow.ts`
-- Opens New Message.
-- Fills recipient search and selects match.
-- Fills CC search and selects match.
-- Fills subject + body.
-- Sends message and asserts alert visibility.
-
----
-
-## 5) Module Config and Test Data Files
-
-### Config files
-- `data/json/modules/auth/config.json`
-- `data/json/modules/user/config.json`
-- `data/json/modules/email/config.json`
-
-Each config provides:
-- module metadata (`module`, `lastUpdated`, `description`),
-- suite grouping (`smoke`, `regression`, `e2e`),
-- testcase-id to file mapping (`testDataFiles`),
-- tags grouping.
-
-Critical role:
-- These mappings are the source of truth for which JSON testcase files are executed.
-
-### Testcase JSON files
-
-Auth:
-- `data/json/modules/auth/TC-AUTH-LOGIN-TC01.json` -> `flowKey: loginValid`
-- `data/json/modules/auth/TC-AUTH-LOGIN-TC02.json` -> `flowKey: loginInvalidUsername`
-- `data/json/modules/auth/TC-AUTH-LOGIN-TC03.json` -> `flowKey: loginInvalidPassword`
-- `data/json/modules/auth/TC-AUTH-LOGIN-TC05.json` -> `flowKey: loginLogout`
-
-User:
-- `data/json/modules/user/TC-USER-01.json` -> `flowKey: createUser`
-- `data/json/modules/user/TC-USER-02.json` -> `flowKey: deleteUser`
-- `data/json/modules/user/TC-USER-03.json` -> `flowKey: editUserPassword`
-
-Email:
-- `data/json/modules/email/TC-EMAIL-01.json` -> `flowKey: sendEmail`
-
-Common testcase schema includes:
-- identity/metadata (`id`, `module`, `description`, `type`, `priority`, `suite`, `tags`),
-- optional business narrative (`steps`, `expectedResult`),
-- executable payload (`testData.input`, optional `testData.expectedData`).
-
----
-
-## 6) End-to-End Example: User Create Scenario
-
-Using `TC-USER-01`:
-1. `user.orchestrator.spec.ts` loads testcase list from user module config.
-2. It creates Playwright test titled with id/description/tags.
-3. `beforeEach` routes browser to `AppPage.USERS` via `AppNavigator`.
-4. `flowKey = createUser` resolves to `CreateUser(...)`.
-5. `CreateUser` reads all input fields from testcase JSON.
-6. Flow performs UI data entry and form submit.
-7. Flow asserts created user appears in result table.
-8. Orchestrator logs PASS or FAIL and rethrows errors to fail the test.
-
----
-
-## 7) Design Characteristics
-
-Strengths:
-- Good separation of concerns: orchestrator vs flow vs data vs navigation.
-- Scalable testcase onboarding by editing JSON + flow mapping.
-- Shared navigation and logging reduce duplication.
-
-Current implementation notes:
-- Several flows use fixed `waitForTimeout(2000)`; can become flaky vs state-based waits.
-- `loginInvalidUsername` expects `expectedData.message`, but testcase currently stores nested `expectedData.errors[].message`.
-- Naming inconsistency: `sendemail` function is lowercase while other flows are PascalCase.
-
----
-
-## 8) Quick Mapping Table
-
-- Auth orchestrator: `tests/auth/auth.orchestrator.spec.ts`
-- User orchestrator: `tests/Users/user.orchestrator.spec.ts`
-- Email orchestrator: `tests/emails/email.orchestrator.spec.ts`
-- Auth flows: `flows/auth/*.flow.ts`
-- User flows: `flows/Users/*.flow.ts`
-- Email flow: `flows/email/send.flow.ts`
-- Types/contracts: `core/data/authTypes.ts`
-- Data loading: `core/data/testCaseLoader.ts`
-- TestData accessor: `core/data/testData.ts`
-- Navigation: `core/navigation/AppNavigator.ts`
-- Logging: `core/utils/logger.ts`
-- Data sources: `data/json/modules/**`
-
-This documentation reflects the current code behavior and data structure in the repository.
+# Playwright Framework Documentation
+
+## Current Architecture
+The framework is now `flowCode`-driven with dynamic flow resolution.
+
+High-level runtime path:
+1. `npm run test:controlled` decides suite/module mode.
+2. `npm run testdata:prepare` regenerates flow registry and Excel-to-JSON test data.
+3. Orchestrator specs load module testcases from JSON.
+4. Orchestrators call `getFlowHandler(module, flowCode)` at runtime.
+5. Resolver executes the matching `flows/<module>/<flowCode>.flow.ts`.
+
+No manual `flowHandlers` map is required in orchestrators.
+
+## Module Lifecycle Automation
+
+### Generate a module
+```bash
+npm run generate:module -- <moduleName> --route=/staff/<moduleName>
+```
+
+Generator creates and updates:
+- `flows/<moduleName>/sample.flow.ts`
+- `tests/<moduleName>/<moduleName>.orchestrator.spec.ts`
+- `data/json/modules/<moduleName>/config.json`
+- `data/excel/tests/<ModuleName>_Test_Cases.xlsx`
+- `core/pages/modules/<moduleName>.page.ts`
+- Playwright project entry in `playwright.config.ts`
+- `AppPage.<MODULE>` and route mapping in `core/navigation/AppNavigator.ts`
+- navigation lines inside module orchestrator (`AppNavigator.goTo(AppPage.<MODULE>)`)
+
+Also creates `core/pages/BasePage.ts` once if not present.
+
+### Generate a flow
+```bash
+npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>
+```
+
+Generator creates and updates:
+- `flows/<moduleName>/<flowCode>.flow.ts`
+- schema registration in `core/data/flowInputSchemas.ts`
+- `core/pages/BasePage.ts` if missing
+- `core/pages/modules/<moduleName>.page.ts` if missing
+
+Generated flows import:
+- `expect`, `Page`
+- module page object
+- `getValidatedInput(...)`
+- generated input schema registration
+
+`generate:module` now scaffolds `sample.flow.ts` with the same validated-input + page-object pattern.
+
+### Delete a module safely
+```bash
+npm run delete:module -- <moduleName> --dry-run
+npm run delete:module -- <moduleName> --yes
+```
+
+Delete removes module-only artifacts:
+- `flows/<moduleName>/`
+- `tests/<moduleName>/`
+- `data/json/modules/<moduleName>/`
+- `data/excel/tests/<ModuleName>_Test_Cases.xlsx`
+- `core/pages/modules/<moduleName>.page.ts`
+- module project from `playwright.config.ts`
+- module route keys from `AppNavigator.ts`
+- module scripts in `package.json` (`test:<module>`, `test:<module>:*`)
+- regenerates `core/flows/generatedFlowRegistry.ts`
+
+Delete works on the exact module name you provide.
+
+### Reset framework
+`reset:framework` now also resets:
+- `core/navigation/AppNavigator.ts`
+- stale module page objects under `core/pages/modules/`
+
+## Naming Standard
+Module names are lowercase and preserved as provided:
+- `user` stays `user`
+- `users` stays `users`
+- `email` stays `email`
+- `emails` stays `emails`
+
+Module resolution is exact after lowercase normalization. The framework does not apply project-specific singular/plural aliases.
+
+## Data Contracts and Validation
+
+### Schema validation
+`core/data/testCaseSchema.ts` enforces runtime testcase structure:
+- required: `id`, `module`, `testData.input`
+- required logical flow key: `flowCode` (legacy `flowKey` accepted as fallback)
+
+This schema is used in:
+- `tools/excel-to-json-test-case.ts`
+- `core/data/testCaseLoader.ts`
+- `tools/validate-framework.ts`
+
+### Validation command
+```bash
+npm run validate:framework
+```
+
+Validates:
+- Excel rows include module + flow identifier
+- `flowCode` resolves to real flow file
+- generated JSON testcases are parseable and schema-valid
+- ambiguous flow resolution is flagged early
+- known flow input schemas validate `input` payloads during validation and prep
+
+## Tooling Tests
+Automated tests for framework scripts are in:
+- `tools/__tests__/tooling.spec.ts`
+
+Run:
+```bash
+npm run test:tools
+```
+
+Coverage includes:
+- `generate:module` idempotent project/nav wiring
+- `delete:module` cleanup scope and alias handling
+- `validate:framework` failure behavior for invalid test data
+
+## CI Quality Gates
+Workflow enforces:
+1. `npm run ci:quality`
+   - `validate:framework`
+   - `tsc --noEmit`
+   - `testdata:prepare`
+   - `test:tools`
+2. PR-only docs drift check: `npm run check:docs-drift`
+3. Smoke execution: `npm run test:controlled` with suite mode
+
+Workflow file:
+- `.github/workflows/playwright.yml`
+
+## Page Object Model Pattern
+Each module gets:
+- `core/pages/modules/<module>.page.ts` for reusable locators/actions
+
+Shared utilities go in:
+- `core/pages/BasePage.ts`
+
+Guideline:
+- keep flows focused on business steps
+- move repeated selectors/actions into module page objects
+
+## Operational Notes
+- Never manually edit `core/flows/generatedFlowRegistry.ts`; regenerate it.
+- After Excel changes, always run `npm run testdata:prepare`.
+- Prefer `flowCode` in all new test data.

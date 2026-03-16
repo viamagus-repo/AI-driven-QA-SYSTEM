@@ -1,10 +1,11 @@
 ﻿# Playwright TypeScript Automation Framework
 
 ## Overview
-This framework runs data-driven Playwright tests for three modules:
+This framework runs data-driven Playwright tests for multiple modules (for example):
 - `auth`
-- `user`
+- `users`
 - `email`
+- `billing`
 
 Primary goal: QA engineers update Excel only, set `flowCode`, and tests execute matching flow files automatically.
 
@@ -44,6 +45,10 @@ core/
     generatedFlowRegistry.ts   # auto-generated
   navigation/
     AppNavigator.ts
+  pages/
+    BasePage.ts
+    modules/
+      <moduleName>.page.ts
   utils/
     logger.ts
 
@@ -58,19 +63,19 @@ data/
       <TESTCASE_ID>.json
 
 flows/
-  auth/*.flow.ts
-  Users/*.flow.ts
-  email/*.flow.ts
+  <moduleName>/*.flow.ts
 
 tests/
-  auth/auth.orchestrator.spec.ts
-  Users/user.orchestrator.spec.ts
-  emails/email.orchestrator.spec.ts
+  <moduleName>/<moduleName>.orchestrator.spec.ts
 
 tools/
+  delete-module.ts
   excel-to-json-test-case.ts
+  generate-flow.ts
+  generate-module.ts
   generate-flow-registry.ts
   prepare-data.ts
+  reset-framework.ts
   test-control.ts
 ```
 
@@ -78,7 +83,10 @@ tools/
 From `package.json`:
 
 - `npm run flow:registry` : generate `core/flows/generatedFlowRegistry.ts`
-- `npm run generate:module -- <moduleName>` : scaffold a new module (flows/tests/json/excel + Playwright project)
+- `npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>` : scaffold one flow file, page-object usage, and its input-schema registration
+- `npm run generate:module -- <moduleName> [--route=/staff/<moduleName>]` : scaffold a new module and configure navigation route
+- `npm run delete:module -- <moduleName> --dry-run` : preview deletion of one module's artifacts only
+- `npm run delete:module -- <moduleName> --yes` : delete one module's artifacts without prompt
 - `npm run reset:framework -- --dry-run` : preview cleanup for new-project reuse
 - `npm run reset:framework` : reset reusable project artifacts (keeps auth by default, asks for y/N confirmation)
 - `npm run reset:framework -- --drop-auth` : reset and remove auth scaffolding too
@@ -86,6 +94,9 @@ From `package.json`:
 - `npm run validate:framework` : validate Excel/JSON/flow consistency and report missing/invalid `flowCode` with location details
 - `npm run testdata:prepare` : generate flow registry + convert all Excel to JSON
 - `npm run testdata:prepare:auth` : auth-only conversion mode
+- `npm run test:tools` : run tooling regression tests (`generate:module`, `delete:module`, `validate:framework`)
+- `npm run ci:quality` : run validation + type-check + data prep + tooling tests
+- `npm run check:docs-drift` : fail if code changed without docs updates (CI/PR)
 - `npm run test:auth` : auth execution
 - `npm run test:auth:smoke` : auth smoke by tags
 - `npm run test:auth:regression` : auth regression by tags
@@ -94,18 +105,49 @@ From `package.json`:
 - `npm run test:controlled` : env-driven run via `tools/test-control.ts`
 
 ## Module Generator Note
-When you scaffold a module using `npm run generate:module -- <moduleName>`, it creates:
+When you scaffold a module using `npm run generate:module -- <moduleName> [--route=/path]`, it creates:
 - `flows/<moduleName>/sample.flow.ts`
 - `tests/<moduleName>/<moduleName>.orchestrator.spec.ts`
 - `data/json/modules/<moduleName>/config.json`
 - `data/excel/tests/<ModuleName>_Test_Cases.xlsx`
+- `core/pages/modules/<moduleName>.page.ts` (module page object)
 - Playwright project entry in `playwright.config.ts`
+- `AppPage.<MODULE>` and route entry in `core/navigation/AppNavigator.ts`
 
 Important:
-- `sample.flow.ts` contains `await page.waitForLoadState("domcontentloaded");` as placeholder scaffold code only.
-- That line is not required by the framework. Replace/remove it and add your actual test steps/assertions.
+- Shared `core/pages/BasePage.ts` is auto-created once and reused across modules.
+- If `--route` is not passed, generator prompts for route interactively.
+- `sample.flow.ts` is only placeholder scaffold code. Replace it with real steps/assertions.
+- Generated `sample.flow.ts` uses `getValidatedInput(...)`, imports the module page object, and registers `<module>SampleInputSchema`.
+- `generate:flow` creates `flows/<module>/<flowCode>.flow.ts`, updates `core/data/flowInputSchemas.ts`, and ensures `core/pages/modules/<module>.page.ts` exists.
+- Generator also ensures orchestrator navigation lines exist:
+  - `const nav = new AppNavigator(page);`
+  - `await nav.goTo(AppPage.<MODULE>);`
 - For complete steps when a new screen/module is introduced, see `NEW_SCREEN_ONBOARDING.md`.
 - For reusing this framework in a completely new project, see `NEW_PROJECT_MIGRATION.md`.
+
+## Remove a Module Safely
+Use module delete utility when decommissioning one module:
+
+```bash
+npm run delete:module -- <moduleName> --dry-run
+npm run delete:module -- <moduleName> --yes
+```
+
+It removes only module-scoped artifacts:
+- `flows/<moduleName>/`
+- `tests/<moduleName>/`
+- `data/json/modules/<moduleName>/`
+- `data/excel/tests/<ModuleName>_Test_Cases.xlsx`
+- `core/pages/modules/<moduleName>.page.ts`
+- matching project entry in `playwright.config.ts`
+- matching `AppPage.<MODULE>` + route entry in `core/navigation/AppNavigator.ts`
+- matching module-specific npm scripts (for example `test:<module>` / `test:<module>:*`)
+- regenerates `core/flows/generatedFlowRegistry.ts`
+
+`reset:framework` also resets:
+- `core/navigation/AppNavigator.ts` baseline entries
+- stale module page objects under `core/pages/modules/`
 
 ## Framework Validation
 Use this before running tests:
@@ -121,6 +163,7 @@ npm run validate:framework
 4. Missing flow folders for modules are flagged.
 5. Generated JSON testcase files are valid JSON.
 6. Generated JSON testcase files contain `flowCode` (or fallback `flowKey`).
+7. Known flow input schemas validate `input` payloads during validation and prep.
 
 ### Error output format
 Validation errors include exact location so testers can fix quickly:
@@ -143,7 +186,7 @@ For any new/updated test case:
 1. Update Excel row.
 2. Set `flowCode` in that row.
 
-Then ensure the corresponding flow file exists.
+Then ensure the corresponding flow file exists or scaffold it with `generate:flow`.
 
 Example:
 - Excel: `flowCode = loginValid`
@@ -182,7 +225,10 @@ Resolver behavior:
 
 ## Add a New Test Case
 1. Add row in module Excel file with `flowCode`.
-2. Create flow file in corresponding module folder under `flows/`.
+2. Create or scaffold flow file in corresponding module folder under `flows/`.
+```bash
+npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>
+```
 3. Run:
 ```bash
 npm run testdata:prepare
@@ -220,7 +266,7 @@ Useful commands:
 npm run validate:framework
 npm run testdata:prepare
 npx playwright test --list
-npx playwright test tests/Users/user.orchestrator.spec.ts --project=users --grep "TC-USER-01" --debug
+npx playwright test tests/<module>/<module>.orchestrator.spec.ts --project=<module> --grep "<TESTCASE_ID>" --debug
 npx playwright show-report
 ```
 
@@ -230,10 +276,11 @@ From `playwright.config.ts`:
 - `retries: 0`
 - `reporter: html`
 - Failure artifacts retained (`trace`, `screenshot`, `video`)
-- `headless: false`
+- `headless: !!process.env.CI` (headless in CI, headed locally)
 - `serviceWorkers: "block"`
 
 ## Important Rules
 - Do not add manual flow maps in orchestrators.
 - Do not use `flowKey` for new entries; use `flowCode`.
 - Regenerate data after every Excel change (`npm run testdata:prepare`).
+- Keep reusable selectors/actions in `core/pages/modules/<module>.page.ts` and consume them from flows.

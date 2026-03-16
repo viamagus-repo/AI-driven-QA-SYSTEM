@@ -1,6 +1,6 @@
 {
   "id": "TC-USER-CREATE-01",
-  "module": "user",
+  "module": "users",
   "flowCode": "create",
   "description": "Create user",
   "type": "positive",

@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { BaseTestCase, ModuleConfig } from "./authTypes";
+import { RuntimeTestCaseSchema } from "./testCaseSchema";
 import { logInfo } from "../utils/logger";
 
 function readJsonFile<T>(filePath: string): T {
@@ -20,33 +21,15 @@ function getModuleBasePath(moduleName: string): string {
   return path.join(process.cwd(), "data", "json", "modules", moduleName);
 }
 
-function assertValidAuthTestCase(
-  value: unknown,
-  sourcePath: string
-): asserts value is BaseTestCase {
-  const data = value as Partial<BaseTestCase>;
-  if (!data || typeof data !== "object") {
-    throw new Error(`Invalid testcase shape in ${sourcePath}`);
+function parseTestCase(value: unknown, sourcePath: string): BaseTestCase {
+  const parsed = RuntimeTestCaseSchema.safeParse(value);
+  if (!parsed.success) {
+    const issues = parsed.error.issues
+      .map((issue) => `${issue.path.join(".") || "<root>"}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Invalid testcase shape in ${sourcePath}: ${issues}`);
   }
-  if (!data.id || typeof data.id !== "string") {
-    throw new Error(`Missing/invalid 'id' in ${sourcePath}`);
-  }
-  if (!data.module || typeof data.module !== "string") {
-    throw new Error(`Missing/invalid 'module' in ${sourcePath}`);
-  }
-  const flowCode = data.flowCode ?? data.flowKey;
-  if (!flowCode || typeof flowCode !== "string") {
-    throw new Error(`Missing/invalid 'flowCode' in ${sourcePath}`);
-  }
-  if (!data.flowCode) {
-    data.flowCode = flowCode;
-  }
-  if (!data.testData || typeof data.testData !== "object") {
-    throw new Error(`Missing/invalid 'testData' in ${sourcePath}`);
-  }
-  if (!data.testData.input || typeof data.testData.input !== "object") {
-    throw new Error(`Missing/invalid 'testData.input' in ${sourcePath}`);
-  }
+  return parsed.data as BaseTestCase;
 }
 
 export function loadModuleConfig(moduleName: string): ModuleConfig {
@@ -66,8 +49,7 @@ export function loadTestCase(moduleName: string, testCaseId: string): BaseTestCa
 
   const fullPath = path.join(getModuleBasePath(moduleName), fileName);
   const parsed = readJsonFile<unknown>(fullPath);
-  assertValidAuthTestCase(parsed, fullPath);
-  return parsed;
+  return parseTestCase(parsed, fullPath);
 }
 
 export function loadAllTestCases(moduleName: string): BaseTestCase[] {
@@ -82,7 +64,6 @@ export function loadAllTestCases(moduleName: string): BaseTestCase[] {
     const fileName = config.testDataFiles[id];
     const fullPath = path.join(moduleBasePath, fileName);
     const parsed = readJsonFile<unknown>(fullPath);
-    assertValidAuthTestCase(parsed, fullPath);
-    return parsed;
+    return parseTestCase(parsed, fullPath);
   });
 }

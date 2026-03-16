@@ -1,21 +1,33 @@
-import { Page, expect } from "@playwright/test";
+import { expect, Page } from "@playwright/test";
 import { BaseTestCase } from "../../core/data/authTypes";
-import { getTestData } from "../../core/data/testData";
+import { usersCreateInputSchema } from "../../core/data/flowInputSchemas";
+import { getValidatedInput } from "../../core/data/testData";
+import { UsersPage } from "../../core/pages/modules/users.page";
 
-export async function CreateUser(page: Page, testCase?: BaseTestCase) {
-  const input = getTestData(testCase).input as Record<string, string>;
-
+export default async function flow(
+  page: Page,
+  testCase?: BaseTestCase,
+): Promise<void> {
+  const input = getValidatedInput(testCase, usersCreateInputSchema);
+  const modulePage = new UsersPage(page);
   await page.getByRole("textbox", { name: "First Name" }).fill(input.firstName);
   await page.getByRole("textbox", { name: "Last Name" }).fill(input.lastName);
 
   await page.getByRole("button", { name: "Choose date" }).click();
-  await page.getByRole("button", { name: "calendar view is open, switch" }).click();
-  await page.locator("div").filter({ hasText: new RegExp(`^${input.dobYear}$`) }).click();
+  await page
+    .getByRole("button", { name: "calendar view is open, switch" })
+    .click();
+  await page
+    .locator("div")
+    .filter({ hasText: new RegExp(`^${input.dobYear}$`) })
+    .click();
   await page.getByRole("radio", { name: input.dobMonth }).click();
   await page.getByRole("gridcell", { name: input.dobDay }).click();
 
   await page.getByRole("textbox", { name: "User Email" }).fill(input.email);
-  await page.getByRole("textbox", { name: "Reason for Visit" }).fill(input.reason);
+  await page
+    .getByRole("textbox", { name: "Reason for Visit" })
+    .fill(input.reason);
   await page.getByRole("textbox", { name: "Phone" }).fill(input.phone);
 
   await page.getByRole("combobox", { name: "State" }).fill(input.state);
@@ -34,6 +46,8 @@ export async function CreateUser(page: Page, testCase?: BaseTestCase) {
   } else if (count > 1) {
     await expect(userCell.first()).toBeVisible();
   } else {
-    throw new Error(`User cell not found for ${input.firstName} ${input.lastName}`);
+    throw new Error(
+      `User cell not found for ${input.firstName} ${input.lastName}`,
+    );
   }
 }

@@ -11,13 +11,14 @@ Add a new module with minimal manual setup so QA can continue using:
 Run:
 
 ```bash
-npm run generate:module -- <moduleName>
+npm run generate:module -- <moduleName> --route=/staff/<moduleName>
+npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>
 ```
 
 Example:
 
 ```bash
-npm run generate:module -- billing
+npm run generate:module -- billing --route=/staff/billing
 ```
 
 This creates:
@@ -25,11 +26,19 @@ This creates:
 - `tests/<moduleName>/<moduleName>.orchestrator.spec.ts`
 - `data/json/modules/<moduleName>/config.json`
 - `data/excel/tests/<ModuleName>_Test_Cases.xlsx`
+- `core/pages/modules/<moduleName>.page.ts`
 - Playwright project entry in `playwright.config.ts`
+- `AppPage.<MODULE>` + route mapping in `core/navigation/AppNavigator.ts`
+- Navigation lines in module orchestrator test body:
+  - `const nav = new AppNavigator(page);`
+  - `await nav.goTo(AppPage.<MODULE>);`
 
 Notes:
 - Safe to run multiple times. Existing files are skipped.
-- It does not overwrite your existing implementation files.
+- Existing orchestrator is auto-patched to ensure navigation lines.
+- Shared `core/pages/BasePage.ts` is created once and reused by all module page objects.
+- `generate:flow` scaffolds a flow file that already imports the module page object and validated input helper.
+- If `--route` is omitted, the command asks for route path interactively.
 
 ## Step 2: Add Test Cases in Excel
 Open generated Excel file:
@@ -54,12 +63,18 @@ Important:
 Create/update flows in:
 - `flows/<moduleName>/`
 
+Recommended scaffold command:
+```bash
+npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>
+```
+
 Naming rule:
 - file name: `<flowCode>.flow.ts`
 - if `flowCode=CreateInvoice`, file should be `CreateInvoice.flow.ts`
 
 Implementation notes:
 - Keep one clear executable flow function per file.
+- Prefer using module page object methods for locators/actions to avoid locator duplication in flows.
 - `sample.flow.ts` contains placeholder code; replace it with real steps/assertions.
 
 ## Step 4: Validate Framework Consistency
@@ -100,7 +115,7 @@ npx playwright test tests/<moduleName>/<moduleName>.orchestrator.spec.ts --proje
 ## Quick Checklist
 1. Generated module scaffold.
 2. Added Excel rows with `flowCode`.
-3. Added flow files matching `flowCode`.
+3. Added or scaffolded flow files matching `flowCode`.
 4. `npm run validate:framework` passes.
 5. `npm run testdata:prepare` passes.
 6. Module test run passes.
@@ -110,3 +125,17 @@ npx playwright test tests/<moduleName>/<moduleName>.orchestrator.spec.ts --proje
 2. Wrong module name in Excel row.
 3. Invalid JSON in Excel `input` cell.
 4. Skipping validation/prep before running tests.
+
+## Remove an Existing Module (Optional)
+When a module is no longer needed:
+
+```bash
+npm run delete:module -- <moduleName> --dry-run
+npm run delete:module -- <moduleName> --yes
+```
+
+This removes only that module's folders/files and related entries in:
+- `playwright.config.ts`
+- `core/navigation/AppNavigator.ts`
+- `package.json` module-specific scripts
+- `core/flows/generatedFlowRegistry.ts` is regenerated automatically

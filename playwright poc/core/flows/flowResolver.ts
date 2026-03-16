@@ -1,11 +1,12 @@
 import { Page } from "@playwright/test";
 import { BaseTestCase } from "../data/authTypes";
 import { generatedFlowRegistry, FlowModuleNamespace } from "./generatedFlowRegistry";
+import { normalizeModuleValue, resolveModuleFromAvailable } from "../utils/moduleNames";
 
 type FlowHandler = (page: Page, testCase: BaseTestCase) => Promise<void>;
 
 function normalize(value: string): string {
-  return value.trim().toLowerCase();
+  return normalizeModuleValue(value);
 }
 
 function resolveFlowCode(moduleName: string, flowCode: string): string {
@@ -56,8 +57,13 @@ function resolveFlowFunction(flowCode: string, moduleNs: FlowModuleNamespace): F
 }
 
 export function getFlowHandler(moduleName: string, flowCode: string): FlowHandler {
-  const normalizedModule = normalize(moduleName);
-  const moduleFlows = generatedFlowRegistry[normalizedModule];
+  const resolvedModuleName = resolveModuleFromAvailable(
+    moduleName,
+    Object.keys(generatedFlowRegistry)
+  );
+  const moduleFlows = resolvedModuleName
+    ? generatedFlowRegistry[resolvedModuleName]
+    : undefined;
 
   if (!moduleFlows) {
     throw new Error(
@@ -67,7 +73,7 @@ export function getFlowHandler(moduleName: string, flowCode: string): FlowHandle
     );
   }
 
-  const resolvedCode = resolveFlowCode(normalizedModule, flowCode);
+  const resolvedCode = resolveFlowCode(resolvedModuleName, flowCode);
   const moduleNs = moduleFlows[resolvedCode];
   return resolveFlowFunction(resolvedCode, moduleNs);
 }

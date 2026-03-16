@@ -1,10 +1,11 @@
 import { Page, expect } from "@playwright/test";
 import { AuthTestCase } from "../../core/data/authTypes";
-import { getTestData } from "../../core/data/testData";
+import { authLoginInputSchema } from "../../core/data/flowInputSchemas";
+import { getTestData, getValidatedInput } from "../../core/data/testData";
 
 export async function loginInvalidUsername(page: Page, testCase?: AuthTestCase) {
   const testData = getTestData(testCase);
-  const input = testData.input as Record<string, string>;
+  const input = getValidatedInput(testCase, authLoginInputSchema);
   const expectedData = (testData.expectedData || {}) as Record<string, string>;
 
   await page.getByRole("button", { name: "I ACKNOWLEDGE" }).click();

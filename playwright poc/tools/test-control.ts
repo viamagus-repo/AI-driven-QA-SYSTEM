@@ -5,6 +5,11 @@ import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
 import { logError, logInfo } from "../core/utils/logger";
+import {
+  normalizeModuleValue,
+  resolveModuleFromAvailable,
+  validateModuleName,
+} from "../core/utils/moduleNames";
 
 dotenv.config({ quiet: true });
 
@@ -24,13 +29,13 @@ const DEFAULT_MODULE_MAP: Record<string, ModuleTarget> = {
     needsDataPrep: true,
   },
   user: {
-    project: "users",
-    file: "tests/Users/user.orchestrator.spec.ts",
+    project: "user",
+    file: "tests/user/user.orchestrator.spec.ts",
     needsDataPrep: true,
   },
   email: {
-    project: "emails",
-    file: "tests/emails/email.orchestrator.spec.ts",
+    project: "email",
+    file: "tests/email/email.orchestrator.spec.ts",
     needsDataPrep: true,
   },
 };
@@ -57,16 +62,11 @@ function normalizeSuite(raw: string | undefined): SuiteName {
 }
 
 function normalizeModule(raw: string | undefined): string {
-  const value = (raw || "").trim().toLowerCase();
-  if (!value) {
-    throw new Error("Invalid TEST_MODULE. Provide a module name.");
-  }
-  if (!/^[a-z][a-z0-9_-]*$/.test(value)) {
-    throw new Error(
-      "Invalid TEST_MODULE. Use lowercase letters, numbers, '-' or '_' and start with a letter."
-    );
-  }
-  return value;
+  return validateModuleName(
+    raw,
+    "Invalid TEST_MODULE. Provide a module name.",
+    "Invalid TEST_MODULE. Use lowercase letters, numbers, '-' or '_' and start with a letter."
+  );
 }
 
 function toPosixPath(filePath: string): string {
@@ -100,20 +100,17 @@ function findAllOrchestrators(): string[] {
 }
 
 function resolveModuleTarget(moduleName: string): ModuleTarget {
-  const fromDefault = DEFAULT_MODULE_MAP[moduleName];
-  if (fromDefault) {
-    return fromDefault;
+  const exactDefault = DEFAULT_MODULE_MAP[moduleName];
+  if (exactDefault) {
+    return exactDefault;
   }
 
-  const candidates = findAllOrchestrators().filter((file) =>
-    path.basename(file).toLowerCase() === `${moduleName}.orchestrator.spec.ts`
+  const orchestrators = findAllOrchestrators();
+  const normalizedModuleName = normalizeModuleValue(moduleName);
+  const candidates = orchestrators.filter((file) =>
+    normalizeModuleValue(path.basename(file).replace(/\.orchestrator\.spec\.ts$/, "")) ===
+      normalizedModuleName
   );
-
-  if (!candidates.length) {
-    throw new Error(
-      `No orchestrator found for TEST_MODULE='${moduleName}'. Expected tests/<module>/${moduleName}.orchestrator.spec.ts`
-    );
-  }
 
   if (candidates.length > 1) {
     throw new Error(
@@ -121,11 +118,35 @@ function resolveModuleTarget(moduleName: string): ModuleTarget {
     );
   }
 
-  return {
-    project: moduleName,
-    file: candidates[0],
-    needsDataPrep: true,
-  };
+  if (candidates.length === 1) {
+    return {
+      project: normalizedModuleName,
+      file: candidates[0],
+      needsDataPrep: true,
+    };
+  }
+
+  const resolvedDefaultKey = resolveModuleFromAvailable(
+    moduleName,
+    Object.keys(DEFAULT_MODULE_MAP)
+  );
+  if (resolvedDefaultKey) {
+    return DEFAULT_MODULE_MAP[resolvedDefaultKey];
+  }
+
+  const resolvedModuleName = resolveModuleFromAvailable(
+    moduleName,
+    orchestrators.map((file) =>
+      path.basename(file).replace(/\.orchestrator\.spec\.ts$/, "")
+    )
+  );
+  if (resolvedModuleName) {
+    return resolveModuleTarget(resolvedModuleName);
+  }
+
+  throw new Error(
+    `No orchestrator found for TEST_MODULE='${moduleName}'. Expected tests/<module>/${moduleName}.orchestrator.spec.ts`
+  );
 }
 
 function runBySuite(): void {

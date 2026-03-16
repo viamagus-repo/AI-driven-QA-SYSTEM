@@ -3,6 +3,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { logError, logInfo } from "../core/utils/logger";
+import { normalizeModuleValue } from "../core/utils/moduleNames";
 
 type FlowEntry = {
   importAlias: string;
@@ -12,10 +13,7 @@ type FlowEntry = {
 };
 
 function normalizeModuleName(moduleDirName: string): string {
-  const lower = moduleDirName.toLowerCase();
-  if (lower === "users") return "user";
-  if (lower === "emails") return "email";
-  return lower;
+  return normalizeModuleValue(moduleDirName);
 }
 
 function toPosix(p: string): string {

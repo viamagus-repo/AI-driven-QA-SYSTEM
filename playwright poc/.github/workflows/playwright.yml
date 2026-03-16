@@ -5,22 +5,45 @@ on:
   pull_request:
     branches: [ main, master ]
 jobs:
-  test:
+  quality:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - name: Install dependencies
+      run: npm ci
+    - name: Run quality gates
+      run: npm run ci:quality
+    - name: Check docs/code drift (PR only)
+      if: ${{ github.event_name == 'pull_request' }}
+      env:
+        GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: npm run check:docs-drift
+
+  smoke:
+    needs: quality
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: lts/*
+        node-version: 20
     - name: Install dependencies
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
-    - name: Prepare test data
-      run: npm run testdata:prepare
-    - name: Run Playwright tests
-      run: npx playwright test
+    - name: Run smoke suite
+      env:
+        TEST_TYPE: suite
+        TEST_SUITE: smoke
+      run: npm run test:controlled
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:

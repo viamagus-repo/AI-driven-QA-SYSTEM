@@ -27,8 +27,9 @@ Symptoms:
 - Data prep error during `validateFlowCode`
 
 Fix:
-1. Verify module value in Excel row (for example `auth`, `user`, `email`, `billing`).
-2. Confirm flow file exists in `flows/<module>/` with `.flow.ts` suffix.
+1. Verify module value in Excel row (for example `auth`, `users`, `email`, `billing`) and ensure it exactly matches the generated module folder.
+2. Confirm flow file exists in `flows/<module>/` with `.flow.ts` suffix, or scaffold it with:
+   - `npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>`
 3. Ensure `flowCode` maps to file stem.
 4. Re-run `npm run testdata:prepare`.
 
@@ -48,7 +49,7 @@ Symptoms:
 - Validator error: `No flow folder found for module ...`
 
 Fix:
-1. Create module scaffold: `npm run generate:module -- <moduleName>`
+1. Create module scaffold: `npm run generate:module -- <moduleName> --route=/staff/<moduleName>`
 2. Ensure Excel `module` value matches generated module name.
 
 ### 5) Invalid JSON in Excel columns
@@ -108,8 +109,21 @@ Symptoms:
 
 Fix:
 1. Run with argument separator:
-   - `npm run generate:module -- <moduleName>`
-2. Re-run safely (idempotent). Existing files are skipped, not overwritten.
+   - `npm run generate:module -- <moduleName> --route=/staff/<moduleName>`
+2. If route is not passed, provide it in interactive prompt.
+3. Re-run safely (idempotent). Existing files are skipped, and orchestrator navigation is auto-patched.
+
+### 11) Need to remove one module without touching others
+Symptoms:
+- Module was deprecated and should be fully removed from framework wiring.
+
+Fix:
+1. Preview:
+   - `npm run delete:module -- <moduleName> --dry-run`
+2. Apply:
+   - `npm run delete:module -- <moduleName> --yes`
+3. Re-run validation:
+   - `npm run validate:framework`
 
 ## Quick Validation Commands
 

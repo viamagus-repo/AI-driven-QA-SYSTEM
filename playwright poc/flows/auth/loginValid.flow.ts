@@ -1,9 +1,10 @@
 import { Page, expect } from "@playwright/test";
 import { AuthTestCase } from "../../core/data/authTypes";
-import { getTestData } from "../../core/data/testData";
+import { authLoginInputSchema } from "../../core/data/flowInputSchemas";
+import { getValidatedInput } from "../../core/data/testData";
 
 export async function loginValid(page: Page, testCase?: AuthTestCase) {
-  const input = getTestData(testCase).input as Record<string, string>;
+  const input = getValidatedInput(testCase, authLoginInputSchema);
 
   await page.getByRole("button", { name: "I ACKNOWLEDGE" }).click();
   await page.getByRole("textbox", { name: "Email" }).click();

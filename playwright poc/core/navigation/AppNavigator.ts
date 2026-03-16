@@ -2,16 +2,14 @@ import { Page } from "@playwright/test";
 
 export enum AppPage {
   HOME = "home",
-  USERS = "users",
-  EMAILS = "emails",
   LOGIN = "login",
+  USERS = "users",
 }
 
 const ROUTES: Record<AppPage, string> = {
   [AppPage.LOGIN]: "/",
   [AppPage.HOME]: "/staff/appointments",
   [AppPage.USERS]: "/staff/users",
-  [AppPage.EMAILS]: "/staff/messages/inboxList",
 };
 
 const pagesWithFreshBootInit = new WeakSet<Page>();

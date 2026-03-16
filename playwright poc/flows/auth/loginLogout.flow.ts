@@ -1,8 +1,13 @@
 import { Page, expect } from "@playwright/test";
 import { AuthTestCase } from "../../core/data/authTypes";
+import { authLoginInputSchema } from "../../core/data/flowInputSchemas";
+import { getValidatedInput } from "../../core/data/testData";
 import { loginValid } from "./loginValid.flow";
 
 export async function loginLogout(page: Page, testCase?: AuthTestCase) {
+  const input = getValidatedInput(testCase, authLoginInputSchema);
+  void input;
+
   await loginValid(page, testCase);
 
   await page.getByText("Vi", { exact: true }).click();

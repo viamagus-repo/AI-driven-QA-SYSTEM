@@ -1,0 +1,30 @@
+{
+  "module": "users",
+  "lastUpdated": "2026-03-16",
+  "description": "users module test suite configuration",
+  "suites": {
+    "smoke": [
+      "TC-USER-CREATE-01"
+    ],
+    "regression": [
+      "TC-USER-CREATE-01"
+    ],
+    "e2e": [
+      "TC-USER-CREATE-01"
+    ]
+  },
+  "testDataFiles": {
+    "TC-USER-CREATE-01": "TC-USER-CREATE-01.json"
+  },
+  "tags": {
+    "smoke": [
+      "TC-USER-CREATE-01"
+    ],
+    "regression": [
+      "TC-USER-CREATE-01"
+    ],
+    "e2e": [
+      "TC-USER-CREATE-01"
+    ]
+  }
+}

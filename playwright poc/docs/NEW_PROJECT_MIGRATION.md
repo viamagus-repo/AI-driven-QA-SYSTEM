@@ -33,6 +33,8 @@ What reset command does:
 - Cleans project-specific module flows/tests/excel/json artifacts.
 - Removes `core/flows/generatedFlowRegistry.ts`, report artifacts, and `storage/auth.json`.
 - Resets `playwright.config.ts` to a clean baseline.
+- Resets `core/navigation/AppNavigator.ts` to baseline routes.
+- Cleans stale module page objects under `core/pages/modules/`.
 
 ## 1. Keep vs Delete
 
@@ -45,11 +47,11 @@ What reset command does:
 
 ## Delete or reset (project-specific content)
 - Existing module flows you do not need:
-  - `flows/Users/*`
+  - `flows/users/*`
   - `flows/email/*`
 - Existing module tests you do not need:
-  - `tests/Users/*`
-  - `tests/emails/*`
+  - `tests/users/*`
+  - `tests/email/*`
 - Existing Excel test data you do not need:
   - `data/excel/tests/*.xlsx`
 - Existing generated JSON:
@@ -117,7 +119,7 @@ Where:
 - Excel `Module` column values
 
 Default approach:
-1. Use `npm run generate:module -- <moduleName>` for every new module.
+1. Use `npm run generate:module -- <moduleName> --route=/staff/<moduleName>` for every new module.
 2. Do not manually create module folders/files/config if generator is available.
 
 When manual checks/changes are still needed:
@@ -126,7 +128,7 @@ When manual checks/changes are still needed:
 3. Old Excel files where `Module` values do not match generated module names.
 
 What to verify:
-1. Module names are standardized (recommended lowercase).
+1. Module names are standardized and exact after lowercase normalization.
 2. Playwright project names align with test directories.
 3. Excel `Module` values match module directories/resolver expectations.
 
@@ -135,7 +137,7 @@ What to verify:
 For each new screen/module:
 
 ```bash
-npm run generate:module -- <moduleName>
+npm run generate:module -- <moduleName> --route=/staff/<moduleName>
 ```
 
 This creates:
@@ -143,13 +145,34 @@ This creates:
 - `tests/<moduleName>/<moduleName>.orchestrator.spec.ts`
 - `data/json/modules/<moduleName>/config.json`
 - `data/excel/tests/<ModuleName>_Test_Cases.xlsx`
+- `core/pages/modules/<moduleName>.page.ts`
 - Playwright project entry in `playwright.config.ts`
+- `AppPage.<MODULE>` + route mapping in `core/navigation/AppNavigator.ts`
+- Navigation lines in orchestrator test body (`AppNavigator.goTo(AppPage.<MODULE>)`)
 
 Then:
 1. Replace sample flow with real implementation.
 2. Add Excel rows with `flowCode`.
-3. Keep flow file naming rule:
+3. Scaffold or create flow files with:
+   - `npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>`
+4. Keep flow file naming rule:
    - `flowCode=loginValid` -> `loginValid.flow.ts`
+5. Re-run `generate:module` safely if route/navigation wiring needs correction.
+6. Move reusable selectors/actions into `core/pages/modules/<moduleName>.page.ts` and keep flows thin.
+
+## Optional: Remove Legacy Module One-by-One
+Instead of full reset, remove a specific module safely:
+
+```bash
+npm run delete:module -- <moduleName> --dry-run
+npm run delete:module -- <moduleName> --yes
+```
+
+This command removes only module-scoped artifacts and cleans related entries from:
+- `playwright.config.ts`
+- `core/navigation/AppNavigator.ts`
+- `package.json` (module-specific scripts)
+- `core/flows/generatedFlowRegistry.ts` (auto-regenerated)
 
 ## 4. Environment Variables to Review
 
@@ -215,7 +238,7 @@ What these do:
 ## 8. Recommended Minimal First Run
 
 1. Set `BASE_URL` and auth credentials/config.
-2. Generate one module (`generate:module`).
+2. Generate one module (`generate:module --route`).
 3. Add one Excel testcase row with `flowCode`.
 4. Implement one flow file.
 5. Run:

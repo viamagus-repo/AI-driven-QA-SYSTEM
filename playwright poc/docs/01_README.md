@@ -123,8 +123,8 @@ Important:
 - Generator also ensures orchestrator navigation lines exist:
   - `const nav = new AppNavigator(page);`
   - `await nav.goTo(AppPage.<MODULE>);`
-- For complete steps when a new screen/module is introduced, see `NEW_SCREEN_ONBOARDING.md`.
-- For reusing this framework in a completely new project, see `NEW_PROJECT_MIGRATION.md`.
+- For complete steps when a new screen/module is introduced, see `04_NEW_SCREEN_ONBOARDING.md`.
+- For reusing this framework in a completely new project, see `05_NEW_PROJECT_MIGRATION.md`.
 
 ## Remove a Module Safely
 Use module delete utility when decommissioning one module:

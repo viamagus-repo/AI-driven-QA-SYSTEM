@@ -22,24 +22,6 @@ type ModuleTarget = {
   needsDataPrep: boolean;
 };
 
-const DEFAULT_MODULE_MAP: Record<string, ModuleTarget> = {
-  auth: {
-    project: "auth",
-    file: "tests/auth/auth.orchestrator.spec.ts",
-    needsDataPrep: true,
-  },
-  user: {
-    project: "user",
-    file: "tests/user/user.orchestrator.spec.ts",
-    needsDataPrep: true,
-  },
-  email: {
-    project: "email",
-    file: "tests/email/email.orchestrator.spec.ts",
-    needsDataPrep: true,
-  },
-};
-
 function run(command: string): void {
   logInfo("TEST-CONTROL", `Running command: ${command}`);
   execSync(command, { stdio: "inherit" });
@@ -100,11 +82,6 @@ function findAllOrchestrators(): string[] {
 }
 
 function resolveModuleTarget(moduleName: string): ModuleTarget {
-  const exactDefault = DEFAULT_MODULE_MAP[moduleName];
-  if (exactDefault) {
-    return exactDefault;
-  }
-
   const orchestrators = findAllOrchestrators();
   const normalizedModuleName = normalizeModuleValue(moduleName);
   const candidates = orchestrators.filter((file) =>
@@ -124,14 +101,6 @@ function resolveModuleTarget(moduleName: string): ModuleTarget {
       file: candidates[0],
       needsDataPrep: true,
     };
-  }
-
-  const resolvedDefaultKey = resolveModuleFromAvailable(
-    moduleName,
-    Object.keys(DEFAULT_MODULE_MAP)
-  );
-  if (resolvedDefaultKey) {
-    return DEFAULT_MODULE_MAP[resolvedDefaultKey];
   }
 
   const resolvedModuleName = resolveModuleFromAvailable(

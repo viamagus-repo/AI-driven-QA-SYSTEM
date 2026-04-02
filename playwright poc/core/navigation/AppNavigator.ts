@@ -42,7 +42,10 @@ export class AppNavigator {
     }
 
     await ensureFreshBootInitScript(this.page);
-    await this.page.goto(route);
+    await this.page.goto(route, {
+      waitUntil: "domcontentloaded",
+      timeout: 60_000,
+    });
     await this.page.waitForLoadState("networkidle");
   }
 }

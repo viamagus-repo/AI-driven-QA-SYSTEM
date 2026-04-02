@@ -198,7 +198,7 @@ describe("tooling scripts", () => {
     expect(sampleFlow).toContain('import { BillingPage } from "../../core/pages/modules/billing.page";');
 
     const flowSchemas = fs.readFileSync(path.join(root, "core/data/flowInputSchemas.ts"), "utf8");
-    expect(flowSchemas).toContain("export const billingSampleInputSchema = z.record(requiredString);");
+    expect(flowSchemas).toContain("export const billingSampleInputSchema = z.record(z.string());");
     expect(flowSchemas).toContain('"billing": {');
     expect(flowSchemas).toContain('"sample": billingSampleInputSchema');
 
@@ -261,7 +261,7 @@ describe("tooling scripts", () => {
     expect(source).toContain("Implement flow 'delete' for module 'users'.");
 
     const schemas = fs.readFileSync(path.join(root, "core/data/flowInputSchemas.ts"), "utf8");
-    expect(schemas).toContain("export const usersDeleteInputSchema = z.record(requiredString);");
+    expect(schemas).toContain("export const usersDeleteInputSchema = z.record(z.string());");
     expect(schemas).toContain('"users": {');
     expect(schemas).toContain('"delete": usersDeleteInputSchema');
   });

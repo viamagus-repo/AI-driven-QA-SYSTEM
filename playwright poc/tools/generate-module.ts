@@ -298,11 +298,14 @@ function updateFlowInputSchemas(moduleName: string, flowCode: string): void {
   let source = fs.readFileSync(schemasPath, "utf8");
 
   if (!source.includes(`export const ${schemaName} =`)) {
-    const insertAfter = "const requiredString = z.string().trim().min(1);\n";
-    if (!source.includes(insertAfter)) {
+    const requiredStringPattern = /const requiredString = z\.string\(\)\.trim\(\)\.min\(1\);\r?\n/;
+    const requiredStringMatch = source.match(requiredStringPattern);
+    if (!requiredStringMatch) {
       throw new Error("Could not locate requiredString declaration in flowInputSchemas.ts");
     }
-    const schemaBlock = `\nexport const ${schemaName} = z.record(requiredString);\n`;
+    const insertAfter = requiredStringMatch[0];
+    const newline = insertAfter.includes("\r\n") ? "\r\n" : "\n";
+    const schemaBlock = `${newline}export const ${schemaName} = z.record(z.string());${newline}`;
     source = source.replace(insertAfter, `${insertAfter}${schemaBlock}`);
   }
 

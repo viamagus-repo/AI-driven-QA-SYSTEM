@@ -8,7 +8,7 @@ All custom `npm run` commands available in this framework, organised by category
 
 | Command | Purpose |
 |---------|---------|
-| `npm run generate:module -- <name> --route=<path>` | Scaffold a new module end-to-end |
+| `npm run generate:module -- <name> --route="<path>"` | Scaffold a new module end-to-end |
 | `npm run generate:flow -- --module=<m> --flowCode=<f>` | Add a single new flow to a module |
 | `npm run flow:registry` | Rebuild the auto-generated flow index |
 | `npm run testdata:prepare` | Excel → JSON + regenerate registry |
@@ -49,7 +49,7 @@ Creates a complete module scaffold for a new screen/feature under test.
 
 **Syntax:**
 ```bash
-npm run generate:module -- <moduleName> --route=<routePath>
+npm run generate:module -- <moduleName> --route="<routePath>"
 ```
 
 **Arguments:**
@@ -57,7 +57,7 @@ npm run generate:module -- <moduleName> --route=<routePath>
 | Argument | Required | Description |
 |----------|----------|-------------|
 | `<moduleName>` | Yes | Lowercase module name. Letters, numbers, `-` or `_` only. Must start with a letter. |
-| `--route=<path>` | Yes | Relative URL path for the module (e.g. `/staff/billing`). Do not include the base URL. |
+| `--route="<path>"` | Yes | Relative URL path for the module (e.g. `/staff/billing`). Do not include the base URL. Use quotes in PowerShell, especially if the path has `?` or `&`. |
 
 **Examples:**
 ```bash
@@ -66,6 +66,9 @@ npm run generate:module -- billing --route=/staff/billing
 
 # With equals sign
 npm run generate:module -- billing --route=/staff/billing
+
+# PowerShell-safe when route includes query params
+npm run generate:module -- tracking -- --route="/staff/tracking?tab=hst"
 
 # Without --route (will interactively prompt for it)
 npm run generate:module -- billing

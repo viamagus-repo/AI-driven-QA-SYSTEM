@@ -3,6 +3,10 @@ import { normalizeModuleValue } from "../utils/moduleNames";
 
 const requiredString = z.string().trim().min(1);
 
+export const trackingValidateInputSchema = z.record(z.string());
+
+export const trackingSampleInputSchema = z.record(requiredString);
+
 export const usersSampleInputSchema = z.record(requiredString);
 
 export const usersDeleteInputSchema = z.record(requiredString);
@@ -34,6 +38,10 @@ const flowInputSchemas: Record<string, Record<string, z.ZodTypeAny>> = {
     create: usersCreateInputSchema,
     "delete": usersDeleteInputSchema,
     "sample": usersSampleInputSchema,
+  },
+  "tracking": {
+    "sample": trackingSampleInputSchema,
+    "validate": trackingValidateInputSchema,
   },
 };
 

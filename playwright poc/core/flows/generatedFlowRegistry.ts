@@ -6,7 +6,8 @@ import * as flowModule0 from "../../flows/auth/loginInvalidPassword.flow";
 import * as flowModule1 from "../../flows/auth/loginInvalidUsername.flow";
 import * as flowModule2 from "../../flows/auth/loginLogout.flow";
 import * as flowModule3 from "../../flows/auth/loginValid.flow";
-import * as flowModule4 from "../../flows/users/create.flow";
+import * as flowModule4 from "../../flows/Users/create.flow";
+import * as flowModule5 from "../../flows/Users/delete.flow";
 
 export type FlowModuleNamespace = Record<string, unknown> & {
   default?: unknown;
@@ -24,5 +25,6 @@ export const generatedFlowRegistry: Record<
   },
   "users": {
     "create": flowModule4,
+    "delete": flowModule5,
   },
 };

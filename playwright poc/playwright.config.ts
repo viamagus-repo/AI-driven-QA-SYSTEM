@@ -39,7 +39,7 @@ export default defineConfig({
         storageState: undefined,
       },
     },
-    {
+{
       name: "users",
       dependencies: ["auth-setup"],
       testDir: "./tests/users",

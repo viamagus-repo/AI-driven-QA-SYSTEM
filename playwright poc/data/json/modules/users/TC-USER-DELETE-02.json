@@ -1,7 +1,7 @@
 {
-  "id": "TC-USER-CREATE-01",
+  "id": "TC-USER-DELETE-02",
   "module": "users",
-  "flowCode": "create",
+  "flowCode": "delete",
   "description": "Create user",
   "type": "positive",
   "priority": "high",
@@ -15,15 +15,7 @@
   "expectedResult": "User should be created and visible in list",
   "testData": {
     "input": {
-      "firstName": "Alice",
-      "lastName": "Doe",
-      "email": "alice@exccample.cm",
-      "phone": "1234567890",
-      "reason": "Checkup",
-      "state": "AZ",
-      "dobYear": "1990",
-      "dobMonth": "January",
-      "dobDay": "15"
+      "firstName": "Alice"
     },
     "expectedData": {
       "success": true

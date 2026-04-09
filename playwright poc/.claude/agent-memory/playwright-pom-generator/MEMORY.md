@@ -1,0 +1,1 @@
+- [Ognomy Web Portal DOM Patterns](project_dom_patterns.md) — Auth flow, users module locator strategies, Toastify toast selectors, MUI Autocomplete pattern, fragile selector notes

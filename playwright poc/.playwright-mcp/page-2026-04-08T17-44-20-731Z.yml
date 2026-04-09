@@ -1,0 +1,37 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - img [ref=e5]
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]: Email
+        - generic [ref=e9]:
+          - img [ref=e11]
+          - textbox [ref=e13]:
+            - /placeholder: Email
+          - group:
+            - generic: Email
+      - generic [ref=e14]:
+        - generic [ref=e15]: Password
+        - generic [ref=e16]:
+          - img [ref=e18]
+          - textbox [ref=e20]:
+            - /placeholder: Password
+          - button [ref=e22] [cursor=pointer]:
+            - img [ref=e23]
+          - group:
+            - generic: Password
+      - button [ref=e25] [cursor=pointer]: Login
+    - paragraph [ref=e26]:
+      - text: Forgot Your Password?
+      - link [ref=e27] [cursor=pointer]:
+        - /url: /reset-password
+        - text: Reset Here
+  - dialog "Warning" [ref=e30]:
+    - heading "Warning" [level=2] [ref=e31]
+    - generic [ref=e32]:
+      - paragraph [ref=e33]: "Warning: This system is restricted to authorized users for business/medical purposes only. Unauthorized access or use is a violation of company policy and the law. This system may be monitored for administrative and security reasons."
+      - list [ref=e34]:
+        - text: "By proceeding, you acknowledge that:"
+        - listitem [ref=e35]: You have read and understand this notice
+        - listitem [ref=e36]: You consent to the system monitoring
+    - button "I ACKNOWLEDGE" [ref=e38] [cursor=pointer]: I ACKNOWLEDGE

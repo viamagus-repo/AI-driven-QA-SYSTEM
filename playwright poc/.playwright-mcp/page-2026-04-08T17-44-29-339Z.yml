@@ -1,0 +1,24 @@
+- generic [ref=e4]:
+  - img "Ognomy Logo" [ref=e39]
+  - generic [ref=e6]:
+    - generic "Email" [ref=e40]:
+      - generic [ref=e8]: Email
+      - generic [ref=e9]:
+        - img [ref=e11]
+        - textbox "Email" [ref=e41]
+        - group:
+          - generic: Email
+    - generic "Password" [ref=e42]:
+      - generic [ref=e15]: Password
+      - generic [ref=e16]:
+        - img [ref=e18]
+        - textbox "Password" [ref=e43]
+        - button [ref=e22] [cursor=pointer]:
+          - img [ref=e23]
+        - group:
+          - generic: Password
+    - button "Login" [ref=e44] [cursor=pointer]: Login
+  - paragraph [ref=e26]:
+    - text: Forgot Your Password?
+    - link "Reset Here" [ref=e45] [cursor=pointer]:
+      - /url: /reset-password

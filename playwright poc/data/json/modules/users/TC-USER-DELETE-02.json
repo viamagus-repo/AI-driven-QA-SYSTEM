@@ -2,7 +2,7 @@
   "id": "TC-USER-DELETE-02",
   "module": "users",
   "flowCode": "delete",
-  "description": "Create user",
+  "description": "delete user",
   "type": "positive",
   "priority": "high",
   "suite": "smoke,regression,e2e",
@@ -11,8 +11,8 @@
     "regression",
     "e2e"
   ],
-  "steps": "Create a new user record from Users screen.",
-  "expectedResult": "User should be created and visible in list",
+  "steps": "delete the user name",
+  "expectedResult": "user name is supposed to be deleted",
   "testData": {
     "input": {
       "firstName": "Alice"

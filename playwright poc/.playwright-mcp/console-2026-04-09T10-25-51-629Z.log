@@ -1,0 +1,20 @@
+[     346ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://web-tmp.ognomy.com/staff/users:0
+[    1047ms] [WARNING] Warning: fragment with name CatalogFields already exists.
+graphql-tag enforces all fragment names across your application to be unique; read more about
+this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names @ https://web-tmp.ognomy.com/assets/vendor-9973044b.js:2402
+[    1393ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "username"): (More info: https://goo.gl/9p2vKq) %o @ https://web-tmp.ognomy.com/staff/users:0
+[    2404ms] [LOG] Connected to socket server: oCGF1B1pbKJnzqSAAAAL @ https://web-tmp.ognomy.com/assets/main-86fb2bc0.js:0
+[    2505ms] [WARNING] Deprecation warning: value provided is not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), which is not reliable across all browsers and versions. Non RFC2822/ISO date formats are discouraged. Please refer to http://momentjs.com/guides/#/warnings/js-date/ for more info.
+Arguments: 
+[0] _isAMomentObject: true, _isUTC: false, _useUTC: false, _l: undefined, _i: No completed appointments, _f: undefined, _strict: undefined, _locale: [object Object]
+Error
+    at hooks.createFromInputFallback (https://web-tmp.ognomy.com/assets/vendor-9973044b.js:367:3)
+    at configFromString (https://web-tmp.ognomy.com/assets/vendor-9973044b.js:367:33940)
+    at configFromInput (https://web-tmp.ognomy.com/assets/vendor-9973044b.js:367:39190)
+    at prepareConfig (https://web-tmp.ognomy.com/assets/vendor-9973044b.js:367:38987)
+    at createFromConfig (https://web-tmp.ognomy.com/assets/vendor-9973044b.js:367:38552)
+    at createLocalOrUTC (https://web-tmp.ognomy.com/assets/vendor-9973044b.js:367:39714)
+    at createLocal (https://web-tmp.ognomy.com/assets/vendor-9973044b.js:367:39776)
+    at hooks (https://web-tmp.ognomy.com/assets/vendor-9973044b.js:364:55)
+    at https://web-tmp.ognomy.com/assets/main-86fb2bc0.js:67:378332
+    at Array.map (<anonymous>) @ https://web-tmp.ognomy.com/assets/vendor-9973044b.js:363

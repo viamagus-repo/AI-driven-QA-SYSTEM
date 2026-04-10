@@ -1,6 +1,6 @@
 {
   "module": "users",
-  "lastUpdated": "2026-04-02",
+  "lastUpdated": "2026-04-10",
   "description": "users module test suite configuration",
   "suites": {
     "smoke": [

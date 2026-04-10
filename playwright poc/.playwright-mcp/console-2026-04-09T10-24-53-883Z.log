@@ -1,0 +1,17 @@
+[     662ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://web-tmp.ognomy.com/staff/users:0
+[    2802ms] [WARNING] Warning: fragment with name CatalogFields already exists.
+graphql-tag enforces all fragment names across your application to be unique; read more about
+this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names @ https://web-tmp.ognomy.com/assets/vendor-9973044b.js:2402
+[    3354ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "username"): (More info: https://goo.gl/9p2vKq) %o @ https://web-tmp.ognomy.com/staff/users:0
+[    4349ms] [LOG] Connected to socket server: qEzIj0soIZRoLMgiAAAH @ https://web-tmp.ognomy.com/assets/main-86fb2bc0.js:0
+[    4884ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://api-tmp.ognomy.com/dischargeSummary/order:0
+[    4887ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://api-tmp.ognomy.com/users?role=partner&perPage=100&noLimit=true&fromtype=user:0
+[    4890ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://api-tmp.ognomy.com/conversations?type=inbox&unread=true&perPage=1&sortBy=weight&sortOrder=desc:0
+[    4896ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://api-tmp.ognomy.com/patients?pageNum=1&perPage=50&sortBy=createdAt&sortOrder=desc&archived=false:0
+[    6111ms] [WARNING] Warning: fragment with name CatalogFields already exists.
+graphql-tag enforces all fragment names across your application to be unique; read more about
+this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names @ https://web-tmp.ognomy.com/assets/vendor-9973044b.js:2402
+[   22470ms] [WARNING] Warning: fragment with name CatalogFields already exists.
+graphql-tag enforces all fragment names across your application to be unique; read more about
+this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names @ https://web-tmp.ognomy.com/assets/vendor-9973044b.js:2402
+[   55438ms] [LOG] Connected to socket server: t2_jGmgRLmldI8YUAAAJ @ https://web-tmp.ognomy.com/assets/main-86fb2bc0.js:0

@@ -8,7 +8,10 @@
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_close",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "mcp__playwright__browser_type",
+      "Bash(python3:*)",
+      "Bash(node:*)"
     ]
   }
 }

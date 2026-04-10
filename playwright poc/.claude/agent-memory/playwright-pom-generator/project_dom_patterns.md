@@ -74,19 +74,26 @@ LAST SEEN, DATE OF REGISTRATION, DATE OF ACTIVATION, PROVIDER, ID, STATE, ACTION
 - Click the div to open, then `getByRole("option", { name })` to pick a value.
 - The `id` attribute on the div is `mui-component-select-<fieldname>` — use `page.locator("#mui-component-select-<fieldname>")`.
 
-### Interactive Patterns — Users Module (2026-04-09)
+### Interactive Patterns — Users Module (2026-04-09, updated 2026-04-09)
 - Tab containers: `div.tab-navs` — 18 tabs — scrollable: YES (horizontal, scrollWidth ~1987px, visible ~820px)
 - Tabs in order: patients, physicians, technicians, secretaries, billing users, schedulers, admins, Respiratory Therapists, Dentists, ENT Providers, Nutritionists, Behavioral Therapists, vendors, partners, contacts, organizations, carriers, locations
 - Tabs requiring scroll: Respiratory Therapists, Dentists, ENT Providers, Nutritionists, Behavioral Therapists, vendors, partners, contacts, organizations, carriers, locations
 - Default active tab: patients
 - Tab element selector: `div.tab-navs a` (class typo: "tab-itmes" not "tab-items")
 - Accordions: no
-- Overlays triggered: "Open message inbox" button (opens inbox panel), bell notification link
-- Dropdowns explored: Role Select (#mui-component-select-role, disabled on patients tab), Referral Type Select (#mui-component-select-referralType), State combobox, Organization combobox, Referral Source combobox, Referring Provider combobox
+- Overlays triggered: "Open message inbox" button (opens inbox panel); bell notification link is in div.info-module.hide — hidden (display:none) under normal conditions
+- Sort filter: `.dropdown-container .click-txt` opens a .popup with two options: "Date of Registration (desc)" and "Date of Activation"
+- Search Archived: `<p>` element with cursor:pointer styling, no ARIA role/state — use getByText("Search Archived", { exact: true })
+- Dropdowns explored: Role Select (#mui-component-select-role, disabled on patients tab), Referral Type Select (#mui-component-select-referralType, role="combobox" aria-haspopup="listbox"), State combobox (getByRole combobox "State"), Organization combobox (name+placeholder, no aria-label), Referral Source combobox (name+placeholder), Referring Provider combobox (name+placeholder)
+- button[aria-label="add"] is INSIDE the create-user MUI Drawer, next to Referring Provider field — it adds a second referring provider entry. It is NOT a toolbar button.
+- Top toolbar (div.top-toolbar.flex) contains: openMessageInboxButton (MUI icon, badge with count), goToInboxLink (a.blue-txt), newMessageLink (a.btn.btn-blue), bellNotificationLink (a.icons.btn-bell, hidden in div.info-module.hide)
+- Toolbar non-drawer buttons: "Open message inbox" (aria-label) and "Merge Accounts" (text) only
 - Load More / pagination: yes — `a.blue-link` (View More) + `a.icons.icon-next` / `a.icons.icon-prev`
+- IMPORTANT: icon-prev / icon-next appear in TWO places: (1) div.titles inside the "Recently Viewed" panel, (2) below the main table. Use `.last()` for main table pagination, scope `.titles` for recently-viewed pagination.
 - Expandable rows: no
 - Tooltips: no
 - Destructive triggers skipped: `a.icons.icon-trash` (delete user — triggers "Yes" confirmation dialog)
+- MUI Autocomplete clear buttons ("Clear") exist for Organization, Referral Source, Referring Provider — only visible when a value is selected; scope by input ancestor .MuiAutocomplete root
 
 ### Form Label Notes
 - MUI form labels have `for` attributes pointing to dynamic IDs (`:r3:`, `:r4:`, etc.) — these IDs are React-generated and may change across renders/sessions. Do not use them in locators.

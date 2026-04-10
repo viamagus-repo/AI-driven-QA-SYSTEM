@@ -1,0 +1,201 @@
+- generic [ref=e46]:
+  - generic [ref=e47]:
+    - list [ref=e49]:
+      - listitem [ref=e50]:
+        - generic [ref=e53]: Home
+      - listitem [ref=e54]:
+        - generic [ref=e57]: Users
+      - listitem [ref=e58]:
+        - generic [ref=e61]: Calendar
+      - listitem [ref=e62]:
+        - generic [ref=e65]: Tracking
+      - listitem [ref=e66]:
+        - generic [ref=e69]: Reports
+    - generic [ref=e70]:
+      - img [ref=e72]
+      - img [ref=e75]
+      - img [ref=e78]
+      - generic [ref=e81] [cursor=pointer]:
+        - text: VA
+        - img "user-head"
+  - generic [ref=e83]:
+    - heading "Good afternoon Viamagus!" [level=5] [ref=e84]
+    - tablist [ref=e88]:
+      - tab "Upcoming Appointments" [selected] [ref=e89] [cursor=pointer]: Upcoming Appointments
+      - tab "Orders Requiring Action" [ref=e90] [cursor=pointer]: Orders Requiring Action
+      - tab "At Risk of Cancellation" [ref=e91] [cursor=pointer]: At Risk of Cancellation
+    - generic [ref=e93]:
+      - generic "Search" [ref=e95]:
+        - generic [ref=e96]: Search
+        - generic [ref=e97]:
+          - img [ref=e99]
+          - textbox "Search" [ref=e101]:
+            - /placeholder: Search by name, email, or phone number
+          - group:
+            - generic: Search
+      - generic [ref=e102]:
+        - group [ref=e104]:
+          - button "All" [pressed] [ref=e105] [cursor=pointer]: All
+          - button "New Patient" [ref=e106] [cursor=pointer]: New Patient
+          - button "Follow-Up" [ref=e107] [cursor=pointer]: Follow-Up
+        - generic [ref=e110]:
+          - generic: Filter State
+          - generic [ref=e111]:
+            - combobox "Filter State" [ref=e112]
+            - button "Open" [ref=e114] [cursor=pointer]:
+              - img [ref=e115]
+            - group:
+              - generic: Filter State
+        - generic [ref=e119]:
+          - generic: Filter Provider
+          - generic [ref=e120]:
+            - combobox "Filter Provider" [ref=e121]
+            - button "Open" [ref=e123] [cursor=pointer]:
+              - img [ref=e124]
+            - group:
+              - generic: Filter Provider
+    - generic:
+      - grid:
+        - generic:
+          - rowgroup:
+            - row "Patient Name Provider Name Copay Date & Time Benefits Verified Logged In Staff Contact Personal Info Insurance Info":
+              - columnheader "Patient Name":
+                - generic:
+                  - generic: Patient Name
+              - columnheader "Provider Name":
+                - generic:
+                  - generic: Provider Name
+              - columnheader "Copay":
+                - generic:
+                  - generic: Copay
+              - columnheader "Date & Time":
+                - generic:
+                  - generic: Date & Time
+              - columnheader "Benefits Verified":
+                - generic:
+                  - generic: Benefits Verified
+              - columnheader "Logged In":
+                - generic:
+                  - generic: Logged In
+              - columnheader "Staff Contact":
+                - generic:
+                  - generic: Staff Contact
+              - columnheader "Personal Info":
+                - generic:
+                  - generic: Personal Info
+              - columnheader "Insurance Info":
+                - generic:
+                  - generic: Insurance Info
+          - generic:
+            - generic:
+              - progressbar
+          - rowgroup:
+            - row:
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+            - row:
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+            - row:
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+            - row:
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+            - row:
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+            - row:
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+            - row:
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+            - row:
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+            - row:
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+              - cell
+        - generic:
+          - generic:
+            - generic:
+              - paragraph: "Rows per page:"
+              - generic:
+                - 'combobox "Rows per page: 20"': "20"
+                - textbox: "20"
+                - img
+              - paragraph: 1–20 of 20
+              - navigation "pagination navigation":
+                - list:
+                  - listitem:
+                    - button "Go to previous page" [disabled]:
+                      - img
+                  - listitem:
+                    - button "page 1": "1"
+                  - listitem:
+                    - button "Go to next page" [disabled]:
+                      - img

@@ -3,7 +3,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { logError, logInfo } from "../core/utils/logger";
-import { normalizeModuleValue, validateModuleName } from "../core/utils/moduleNames";
+import { validateModuleName } from "../core/utils/moduleNames";
 
 type CliOptions = {
   moduleName: string;
@@ -11,15 +11,15 @@ type CliOptions = {
 };
 
 function validateFlowCode(raw: string | undefined): string {
-  const value = normalizeModuleValue(raw);
+  const value = (raw || "").trim();
   if (!value) {
     throw new Error(
       "Flow code is required. Usage: npm run generate:flow -- --module=<moduleName> --flowCode=<flowCode>"
     );
   }
-  if (!/^[a-z][a-z0-9_-]*$/.test(value)) {
+  if (!/^[a-z][A-Za-z0-9_-]*$/.test(value)) {
     throw new Error(
-      "Invalid flow code. Use lowercase letters, numbers, '-' or '_' and start with a letter."
+      "Invalid flow code. Use camelCase/snake_case/kebab-case with letters, numbers, '-' or '_' and start with a lowercase letter."
     );
   }
   return value;
@@ -88,6 +88,7 @@ function ensureDir(dirPath: string): void {
 
 function toPascalCase(value: string): string {
   return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .split(/[^a-zA-Z0-9]+/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())

@@ -1,47 +1,60 @@
 {
   "module": "auth",
-  "lastUpdated": "2026-04-02",
+  "lastUpdated": "2026-04-10",
   "description": "auth module test suite configuration",
   "suites": {
     "smoke": [
       "TC-AUTH-LOGIN-TC01",
-      "TC-AUTH-LOGIN-TC03"
+      "TC-AUTH-LOGIN-TC03",
+      "TC-AUTH-LOGIN-TC06"
     ],
     "regression": [
       "TC-AUTH-LOGIN-TC01",
       "TC-AUTH-LOGIN-TC02",
       "TC-AUTH-LOGIN-TC03",
-      "TC-AUTH-LOGIN-TC05"
+      "TC-AUTH-LOGIN-TC05",
+      "TC-AUTH-LOGIN-TC06"
     ],
     "e2e": [
       "TC-AUTH-LOGIN-TC01",
       "TC-AUTH-LOGIN-TC02",
       "TC-AUTH-LOGIN-TC03",
-      "TC-AUTH-LOGIN-TC05"
+      "TC-AUTH-LOGIN-TC05",
+      "TC-AUTH-LOGIN-TC06"
+    ],
+    "testing": [
+      "TC-AUTH-LOGIN-TC06"
     ]
   },
   "testDataFiles": {
     "TC-AUTH-LOGIN-TC01": "TC-AUTH-LOGIN-TC01.json",
     "TC-AUTH-LOGIN-TC02": "TC-AUTH-LOGIN-TC02.json",
     "TC-AUTH-LOGIN-TC03": "TC-AUTH-LOGIN-TC03.json",
-    "TC-AUTH-LOGIN-TC05": "TC-AUTH-LOGIN-TC05.json"
+    "TC-AUTH-LOGIN-TC05": "TC-AUTH-LOGIN-TC05.json",
+    "TC-AUTH-LOGIN-TC06": "TC-AUTH-LOGIN-TC06.json"
   },
   "tags": {
     "smoke": [
       "TC-AUTH-LOGIN-TC01",
-      "TC-AUTH-LOGIN-TC03"
+      "TC-AUTH-LOGIN-TC03",
+      "TC-AUTH-LOGIN-TC06"
     ],
     "regression": [
       "TC-AUTH-LOGIN-TC01",
       "TC-AUTH-LOGIN-TC02",
       "TC-AUTH-LOGIN-TC03",
-      "TC-AUTH-LOGIN-TC05"
+      "TC-AUTH-LOGIN-TC05",
+      "TC-AUTH-LOGIN-TC06"
     ],
     "e2e": [
       "TC-AUTH-LOGIN-TC01",
       "TC-AUTH-LOGIN-TC02",
       "TC-AUTH-LOGIN-TC03",
-      "TC-AUTH-LOGIN-TC05"
+      "TC-AUTH-LOGIN-TC05",
+      "TC-AUTH-LOGIN-TC06"
+    ],
+    "testing": [
+      "TC-AUTH-LOGIN-TC06"
     ]
   }
 }

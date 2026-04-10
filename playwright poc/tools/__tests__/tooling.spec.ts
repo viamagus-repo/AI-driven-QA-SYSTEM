@@ -266,6 +266,25 @@ describe("tooling scripts", () => {
     expect(schemas).toContain('"delete": usersDeleteInputSchema');
   });
 
+  it("generate:flow preserves camelCase flowCode in generated file names", () => {
+    const root = mkTempWorkspace("generate-flow-camel");
+    createBaseWorkspace(root);
+
+    runCli(GENERATE_FLOW_SCRIPT, ["--module=users", "--flowCode=emailField"], root);
+
+    const flowFile = path.join(root, "flows/users/emailField.flow.ts");
+    expect(fs.existsSync(flowFile)).toBe(true);
+
+    const source = fs.readFileSync(flowFile, "utf8");
+    expect(source).toContain('import { usersEmailFieldInputSchema } from "../../core/data/flowInputSchemas";');
+    expect(source).toContain("const input = getValidatedInput(testCase, usersEmailFieldInputSchema);");
+    expect(source).toContain("Implement flow 'emailField' for module 'users'.");
+
+    const schemas = fs.readFileSync(path.join(root, "core/data/flowInputSchemas.ts"), "utf8");
+    expect(schemas).toContain("export const usersEmailFieldInputSchema = z.record(z.string());");
+    expect(schemas).toContain('"emailField": usersEmailFieldInputSchema');
+  });
+
   it("generate:flow accepts npm_config fallback values", () => {
     const root = mkTempWorkspace("generate-flow-env");
     createBaseWorkspace(root);

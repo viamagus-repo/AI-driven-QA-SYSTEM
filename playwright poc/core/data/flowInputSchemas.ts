@@ -3,6 +3,10 @@ import { normalizeModuleValue } from "../utils/moduleNames";
 
 const requiredString = z.string().trim().min(1);
 
+export const authEmailFieldInputSchema = z.record(z.string());
+
+export const authEmailfieldInputSchema = z.record(z.string());
+
 export const trackingValidateInputSchema = z.record(z.string());
 
 export const trackingSampleInputSchema = z.record(requiredString);
@@ -33,6 +37,8 @@ const flowInputSchemas: Record<string, Record<string, z.ZodTypeAny>> = {
     loginvalid: authLoginInputSchema,
     logininvalidusername: authLoginInputSchema,
     logininvalidpassword: authLoginInputSchema,
+    "emailfield": authEmailfieldInputSchema,
+    "emailField": authEmailFieldInputSchema,
   },
   users: {
     create: usersCreateInputSchema,
@@ -49,6 +55,22 @@ function normalizeFlowCode(value: string | undefined): string {
   return normalizeModuleValue(value);
 }
 
+function resolveFlowSchema(
+  moduleSchemas: Record<string, z.ZodTypeAny>,
+  flowCode: string
+): z.ZodTypeAny | undefined {
+  const exactMatch = moduleSchemas[flowCode];
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const normalizedRequested = normalizeFlowCode(flowCode);
+  const matchedKey = Object.keys(moduleSchemas).find(
+    (key) => normalizeFlowCode(key) === normalizedRequested
+  );
+  return matchedKey ? moduleSchemas[matchedKey] : undefined;
+}
+
 export function getFlowInputSchema(
   moduleName: string,
   flowCode: string
@@ -57,7 +79,7 @@ export function getFlowInputSchema(
   if (!moduleSchemas) {
     return undefined;
   }
-  return moduleSchemas[normalizeFlowCode(flowCode)];
+  return resolveFlowSchema(moduleSchemas, flowCode);
 }
 
 export function validateFlowInputData(

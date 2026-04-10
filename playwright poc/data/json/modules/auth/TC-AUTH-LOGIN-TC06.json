@@ -1,0 +1,23 @@
+{
+  "id": "TC-AUTH-LOGIN-TC06",
+  "module": "auth",
+  "flowCode": "emailField",
+  "description": "Verify email field is present with label, placeholder, and icon",
+  "type": "positive",
+  "priority": "high",
+  "suite": "smoke,regression,e2e,testing",
+  "tags": [
+    "smoke",
+    "regression",
+    "e2e",
+    "testing"
+  ],
+  "steps": "1. Navigate to login page",
+  "expectedResult": "Email field shows &apos;Email&apos; label above it, user icon inside, placeholder text &apos;Email&apos;, and is editable.",
+  "testData": {
+    "input": {},
+    "expectedData": {
+      "success": true
+    }
+  }
+}

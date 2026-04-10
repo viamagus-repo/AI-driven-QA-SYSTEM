@@ -14,7 +14,7 @@ import {
 dotenv.config({ quiet: true });
 
 type TestType = "suite" | "module";
-type SuiteName = "smoke" | "regression" | "e2e";
+type SuiteName = "smoke" | "regression" | "e2e" | "testing";
 
 type ModuleTarget = {
   project: string;
@@ -37,8 +37,8 @@ function normalizeTestType(raw: string | undefined): TestType {
 
 function normalizeSuite(raw: string | undefined): SuiteName {
   const value = (raw || "").toLowerCase() as SuiteName;
-  if (value !== "smoke" && value !== "regression" && value !== "e2e") {
-    throw new Error("Invalid TEST_SUITE. Allowed values: smoke, regression, e2e");
+  if (value !== "smoke" && value !== "regression" && value !== "e2e" && value !== "testing") {
+    throw new Error("Invalid TEST_SUITE. Allowed values: smoke, regression, e2e, testing");
   }
   return value;
 }

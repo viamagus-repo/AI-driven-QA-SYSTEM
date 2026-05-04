@@ -1,0 +1,3 @@
+[submodule "qa-inputs/nerl"]
+	path = qa-inputs/nerl
+	url = https://github.com/ashoor-viamagus/NERL.git

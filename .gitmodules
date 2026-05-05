@@ -1,3 +1,6 @@
 [submodule "qa-inputs/nerl"]
 	path = qa-inputs/nerl
 	url = https://github.com/ashoor-viamagus/NERL.git
+[submodule "qa-inputs/nerl-code"]
+	path = qa-inputs/nerl-code
+	url = https://git-codecommit.ap-south-1.amazonaws.com/v1/repos/vm-react-boilerplate-reactjs

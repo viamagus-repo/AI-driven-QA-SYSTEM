@@ -1,6 +1,6 @@
 ---
 name: qa-knowledge-builder
-description: Ingests design docs, PRDs, specs, API definitions, or app URLs and produces a structured QA Knowledge document that all downstream pipeline stages consume.
+description: Reads design artifacts from a reference path (not copying) and produces a structured QA Knowledge document used by all downstream QA pipeline stages.
 type: skill
 ---
 
@@ -10,98 +10,189 @@ type: skill
 `qa-knowledge-builder`
 
 ## Description
-Transforms raw product inputs — Design documents, PRDs, Specifications, API contracts, or live App URLs — into a structured QA Knowledge artifact. This artifact is the single source of truth for the entire AI-driven QA pipeline and must be produced before any analysis or test generation begins.
+Transforms design repository modules (via reference paths) into a structured QA Knowledge artifact.
+
+This artifact is the single source of truth for:
+- requirement-analysis
+- test-case-generation
+- automation mapping
+
+Downstream skills MUST use this output instead of re-reading design files.
+
+---
 
 ## Purpose
-Capture every testable aspect of the product in one place: business goals, user flows, entities, constraints, integrations, and non-functional requirements. Downstream skills (requirement-analysis, test-case-generation, etc.) read from this output rather than re-interpreting raw source material.
+Capture every testable aspect of the module in one place:
+- Business context
+- User flows
+- Entities
+- Validations
+- Constraints
+- System limitations
+- Missing requirements
+
+---
+
+## Core Principle (MANDATORY)
+
+Reference-based processing — NOT copy-based
+
+- Read from external design repo path
+- Do NOT copy design files into QA repo
+- Do NOT paste raw design content
+- Only generate processed QA knowledge
+
+---
 
 ## When to Use
-- At the start of a QA engagement for a new feature, module, or product.
-- When a PRD, spec, design, or API definition is provided or updated.
-- When a live app URL is shared for exploratory analysis.
-- Before running `requirement-analysis`.
+- At the start of QA pipeline for a module
+- When design repo is updated
+- Before running `requirement-analysis`
+
+---
 
 ## Input
-Provide one or more of the following (at least one is required):
 
-| Input Type       | Example                                      |
-|------------------|----------------------------------------------|
-| Design doc       | Figma link, PDF, or pasted design description|
-| PRD / Spec       | Pasted text or attached document             |
-| API definition   | OpenAPI/Swagger JSON or YAML, REST endpoints |
-| App URL          | `https://staging.example.com`                |
-| Feature summary  | Plain English description of the feature     |
+Provide:
+
+Module Name: <Module Name>
+Design Path: <Relative Path to Design Repo>
+
+Example:
+Module Name: Admin / Master Data  
+Design Path: ../Design-Framework/portals/admin-panel/master-data
+
+Optional:
+Code Path: ../FE-Codebase  
+App URL: https://staging.example.com  
+
+---
+
+## Execution Rules
+
+1. Validate that the Design Path exists  
+   - If NOT found → STOP and return error  
+   - Do NOT guess or hallucinate  
+
+2. If some files are missing  
+   - Continue processing  
+   - Clearly mention gaps in output  
+
+3. Never assume undefined behavior  
+   - Always report as a gap  
+
+---
 
 ## Instructions
 
-1. **Parse all provided inputs.** Extract: feature name, version/release, business objective, target users, functional scope, out-of-scope items, key entities/data models, API endpoints, user flows, edge cases mentioned, non-functional requirements (performance, security, accessibility), dependencies, and environment details.
+1. Navigate to the provided Design Path  
+2. Read all relevant files, including:
+   - flow / flow-*.md
+   - screens.md
+   - spec.md
+   - data-model.md
+   - layout.md
+   - jtbd.md
+   - api.md (if present)
+   - context/ folder
 
-2. **Identify testable surfaces.** List every UI screen, API endpoint, data flow, state transition, permission boundary, and integration point that requires validation.
+3. Build understanding:
+   - Module purpose
+   - User roles
+   - Screens and navigation
+   - Core flows
+   - Entities and relationships
+   - Field-level rules
+   - Business rules
+   - System constraints
 
-3. **Flag ambiguities.** Note anything unclear, contradictory, or missing from the source material. Do not assume; document the gap.
+4. Identify testable surfaces:
+   - UI screens
+   - Input fields and validations
+   - CRUD operations
+   - State transitions
+   - Data integrity rules
+   - Edge scenarios
 
-4. **Structure the output** using the schema defined in the Output section below.
+5. Detect ambiguities:
+   - Missing validations
+   - Undefined behavior
+   - Incomplete flows
+   - Gaps in design
 
-5. **Save the file** following the File Output Requirement.
+6. Apply QA thinking:
+   - What can break
+   - What needs validation
+   - What is risky
+   - What is unclear
 
-## Output
+7. Generate structured QA Knowledge output (do NOT copy raw content)
 
-Produce a Markdown file with the following sections:
+---
 
-```
-# QA Knowledge: <Feature/Module Name>
+## Output Format (MANDATORY)
+
+Generate the output EXACTLY in the following structure:
+
+# QA Knowledge: <Module Name>
+
 ## Meta
-- Source inputs used
+- Design Path Used
 - Date
 - Version
 
-## Business Context
-- Business objective
-- Target users / personas
-- Success criteria
+## Module Overview
+- Purpose
+- Scope within product
 
-## Functional Scope
-- In-scope features (bulleted list)
-- Out-of-scope items
+## User Roles
 
-## Entities & Data Models
-- Key entities with fields and constraints
+## Screen Inventory
 
-## User Flows
-- Named flows with step-by-step descriptions
+## Navigation & Flows
 
-## API Surface
-- Endpoint list: method, path, auth requirement, key params
+## Entities & Data Model
 
-## Non-Functional Requirements
-- Performance thresholds
-- Security / auth requirements
-- Accessibility standards
-- Browser / device targets
+## Field-Level Rules
 
-## Integrations & Dependencies
-- Third-party services, internal APIs, databases
+## Business Rules
 
-## Known Ambiguities & Open Questions
-- Numbered list of gaps or contradictions found
+## System Constraints
+
+## Edge Cases
+
+## QA Risks
+
+## Missing Requirements / Open Questions
 
 ## Testable Surface Summary
-- Bullet summary of what must be tested
-```
+
+---
 
 ## File Output Requirement
-- **Output folder:** `qa-knowledge/`
-- **File name:** `<feature-name>_qa_knowledge_v1.md`
-- If `_v1` already exists, save as `_v2`, `_v3`, etc.
-- Never overwrite an existing file.
+
+- Output folder: knowledge/
+- File name: <module-name>_qa_knowledge_v1.md
+- If file exists → create v2, v3, etc.
+- Never overwrite existing file
+
+---
 
 ## File Handling Rules
-- Check if `qa-knowledge/<feature-name>_qa_knowledge_v1.md` exists before writing.
-- If it exists, increment the version suffix and notify the user which version was created.
-- Do not delete or modify prior versions.
+
+- Check if file exists before writing
+- Auto-increment version
+- Do NOT delete or modify previous versions
+- Notify user of created version
+
+---
 
 ## Expected Outcome
-A complete, structured QA Knowledge document saved in `qa-knowledge/` that:
-- Covers all testable surfaces derived from the inputs.
-- Lists all known ambiguities for stakeholder resolution.
-- Can be consumed directly by `requirement-analysis` without re-reading the original source material.
+
+A QA Knowledge document that:
+
+- Is module-specific (not generic)
+- Captures real constraints and validations
+- Highlights missing requirements
+- Is directly usable by requirement-analysis
+- Eliminates need to re-read design repo later

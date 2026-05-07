@@ -10,100 +10,193 @@ type: skill
 `requirement-analysis`
 
 ## Description
-Transforms the QA Knowledge artifact into a formal Requirement Analysis document. Each requirement is extracted, categorized, assigned a risk level, and assessed for testability. The output drives test case scoping and prioritization in the next pipeline stage.
+Transforms the QA Knowledge artifact into a structured Requirement Analysis document.
+
+Each requirement is:
+- Extracted as a discrete testable statement
+- Categorized
+- Risk-rated
+- Evaluated for testability
+- Assigned coverage priority
+
+This output drives:
+- test-case-generation
+- automation mapping
+
+---
 
 ## Purpose
-Ensure every requirement is explicitly documented, nothing is missed, high-risk areas are flagged for deep coverage, and untestable items are escalated before test writing begins.
+
+Ensure:
+- No requirement is missed
+- High-risk areas are clearly identified
+- Gaps are caught BEFORE test case generation
+- Testability issues are surfaced early
+
+---
+
+## Core Principle (MANDATORY)
+
+- QA Knowledge document is the ONLY source of truth
+- Do NOT re-read design repo
+- Do NOT assume missing behavior
+- Convert knowledge into testable requirements
+
+---
 
 ## When to Use
-- After `qa-knowledge-builder` has produced a QA Knowledge document.
-- Before running `test-case-generation`.
-- When requirements change and existing test cases need to be re-scoped.
+
+- After `qa-knowledge-builder`
+- Before `test-case-generation`
+- When requirements change
+
+---
 
 ## Input
 
-| Input | Required | Description |
-|-------|----------|-------------|
-| QA Knowledge file | Yes | Path to the `qa-knowledge/<feature>_qa_knowledge_v*.md` file |
-| Additional constraints | Optional | Stakeholder priorities, deadline, environment limits |
+Provide:
+
+QA Knowledge File: knowledge/<module-name>_qa_knowledge_v*.md
+
+Example:
+QA Knowledge File: knowledge/admin-master-data_qa_knowledge_v2.md
+
+Optional:
+- Constraints (timeline, priority, etc.)
+
+---
+
+## Execution Rules
+
+1. Validate QA Knowledge file exists  
+   - If NOT found → STOP  
+   - Do NOT hallucinate  
+
+2. Use ONLY QA Knowledge  
+   - Do NOT go back to design repo  
+
+3. If something is unclear  
+   - Mark as "Gap / Not Defined"  
+   - Do NOT assume  
+
+---
 
 ## Instructions
 
-1. **Read the QA Knowledge document.** Do not re-read the original PRD/spec — the knowledge document is the authoritative input.
+1. Read QA Knowledge file completely
 
-2. **Extract all requirements.** For each item in the Functional Scope, User Flows, API Surface, Non-Functional Requirements, and Integrations sections, write a discrete, testable requirement statement.
+2. Extract requirements from:
+   - Navigation & Flows
+   - Field-Level Rules
+   - Business Rules
+   - System Constraints
+   - Edge Cases
+   - Testable Surface Summary
 
-3. **Categorize each requirement:**
+3. Convert into discrete requirements:
+   - Each requirement must be atomic
+   - Each must be testable
+   - Avoid combining multiple conditions
+
+4. Categorize each requirement:
    - Functional
-   - Non-Functional (Performance / Security / Accessibility / Compatibility)
-   - Integration
    - UI/UX
    - Data Validation
-   - Authorization & Authentication
+   - Business Rule
+   - Integration
+   - Non-Functional (Performance / Security / Accessibility)
 
-4. **Assign risk level** (High / Medium / Low) based on:
-   - Business impact if it fails
-   - Complexity of the implementation
-   - Dependency on external systems
-   - Historical defect density (if known)
+5. Assign Risk Level:
+   - High → Business-critical / data impact / system-wide
+   - Medium → Important but limited scope
+   - Low → Cosmetic / minor impact
 
-5. **Assess testability** (Testable / Partially Testable / Not Testable). For anything not fully testable, document why and what is needed to make it testable.
+6. Assign Testability:
+   - Testable
+   - Partially Testable
+   - Not Testable
 
-6. **Assign coverage priority** (P1 Must-Test / P2 Should-Test / P3 Nice-to-Test).
+7. Assign Coverage Priority:
+   - P1 → Must test (critical path)
+   - P2 → Should test
+   - P3 → Nice to test
 
-7. **List open questions** carried over from the Knowledge document plus any new ones surfaced during analysis.
+8. Apply QA Thinking:
+   - What can break?
+   - What is high impact?
+   - What is frequently error-prone?
+   - What depends on data integrity?
 
-8. **Save the file** following the File Output Requirement.
+9. Identify:
+   - High-risk requirements
+   - Non-testable items
+   - Missing requirements
 
-## Output
+---
 
-Produce a Markdown file with the following sections:
+## Output Format (MANDATORY)
 
-```
-# Requirement Analysis: <Feature/Module Name>
+Generate EXACTLY in this structure:
+
+# Requirement Analysis: <Module Name>
+
 ## Meta
-- QA Knowledge source file
+- QA Knowledge Source File
 - Date
 - Version
 
 ## Requirement Summary
-- Total requirements extracted
-- Breakdown by category
-- Breakdown by risk level
+- Total Requirements
+- Count by Category
+- Count by Risk Level
 
 ## Requirements Table
+
 | ID | Requirement Statement | Category | Risk | Testability | Priority | Notes |
 
 ## High-Risk Requirements
-- Detailed narrative for each High-risk item
+- Explain why each is high risk
 
 ## Non-Testable Items
-- Item, reason, what is needed to unblock
+- Requirement
+- Reason
+- What is needed to make it testable
 
-## Open Questions
-- Carried over from QA Knowledge
-- New questions raised during analysis
+## Missing Requirements / Gaps
+- Carried from QA Knowledge
+- Newly identified gaps
 
 ## Coverage Recommendation
-- Which areas need deep coverage
-- Which areas can use lighter smoke coverage
-- Suggested test types per area (unit, integration, E2E, performance, security)
-```
+- Areas needing deep testing
+- Areas for smoke testing
+- Suggested test types (E2E, Integration, API, etc.)
+
+---
 
 ## File Output Requirement
-- **Output folder:** `qa-analysis/`
-- **File name:** `<feature-name>_requirement_analysis_v1.md`
-- If `_v1` already exists, save as `_v2`, `_v3`, etc.
-- Never overwrite an existing file.
+
+- Output folder: `analysis/`
+- File name: `<module-name>_requirement_analysis_v1.md`
+- If exists → create v2, v3, etc.
+- Never overwrite existing file
+
+---
 
 ## File Handling Rules
-- Check if `qa-analysis/<feature-name>_requirement_analysis_v1.md` exists before writing.
-- If it exists, increment the version suffix and notify the user which version was created.
-- Do not delete or modify prior versions.
+
+- Check if file exists before writing
+- Auto-increment version
+- Do NOT delete or modify previous versions
+- Notify user of created version
+
+---
 
 ## Expected Outcome
-A complete Requirement Analysis document saved in `qa-analysis/` that:
-- Lists every discrete requirement with category, risk, testability, and priority.
-- Highlights high-risk areas requiring deep coverage.
-- Surfaces all gaps before test case writing begins.
-- Is directly consumable by `test-case-generation` as its primary input.
+
+A Requirement Analysis document that:
+
+- Converts QA knowledge into testable requirements
+- Identifies high-risk areas clearly
+- Highlights testability gaps early
+- Drives structured test case generation
+- Is directly consumable by next pipeline stage
